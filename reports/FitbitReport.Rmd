@@ -1,0 +1,459 @@
+---
+  title: "Health Educator Fitbit Report"
+  pagetitle: "Fitbit Report"
+  author: ""
+  date: ""
+  output: html_document
+---
+
+<hr class="heavy">
+<h2> Participant ID: `r paste0("#", id)` </h2>
+<h4> This report was created for the ChefBoyID Cooking Pilot Study </h4>
+<h4> by Brian Helsel on `r format(Sys.Date(), "%B %d, %Y")` at  `r format(Sys.time(), "%H:%M:%S")` </h4>
+<center><img src="/Users/bhelsel/Desktop/Fitbit API/reports/images/fitbit.logo.png" alt="Fitbit logo"/></center>
+
+```{r set up, echo = FALSE, include = FALSE, warning = FALSE, message = FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{css}
+
+h1.title {
+  padding-top: 50px;
+  font-size: 64px;
+  color: #000000;
+  font-weight: bold;
+  text-align: center;
+  vertical-align: middle;
+}
+
+h1 {
+  padding-top: 50px;
+  font-size: 64px;
+  color: #000000;
+  font-weight: bold;
+  text-align: center;
+  vertical-align: middle;
+}
+
+h2 {
+  background: #b2bfc3;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-size: 36px;
+  color: #000000;
+  font-weight: bold;
+  text-align: center;
+  vertical-align: middle;
+}
+
+h3 {
+  font-size: 24px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  color: #002A3A;
+  text-align: center;
+  font-weight: bold;
+}
+
+h4 {
+  font-size: 18px;
+  color: #002A3A;
+  text-align: center;
+}
+
+p {
+  font-size: 18px;
+  text-align: center;
+}
+
+hr.heavy {
+  width: 100%;
+  height: 10px;
+  background: #002A3A;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+hr.light {
+  width: 100%;
+  height: 5px;
+  background: #002A3A;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+```
+
+```{r load libraries, include=FALSE}
+
+library(tidyverse)
+library(reactable)
+library(plotly)
+
+```
+
+```{r read in all data, echo = FALSE}
+
+database <- grep(id, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
+con <- DBI::dbConnect(RSQLite::SQLite(), database)
+
+activities <- DBI::dbReadTable(con, "activities")
+heart <- DBI::dbReadTable(con, "heart")
+exerciseLog <- DBI::dbReadTable(con, "exerciseLog")
+device <- DBI::dbReadTable(con, "device")
+
+DBI::dbDisconnect(con)
+
+```
+
+<p> This report was generated using R and the public <a href= "https://dev.fitbit.com/build/reference/web-api/"> Fitbit Web API </a> that can be used to retrieve Fitbit user data collected by Fitbit devices. Information that can be accessed via the <a href= "https://dev.fitbit.com/build/reference/web-api/"> Fitbit Web API </a> includes data related to <a href = "https://dev.fitbit.com/build/reference/web-api/activity/">activities</a>, <a href = "https://dev.fitbit.com/build/reference/web-api/body/">body</a>, <a href = "https://dev.fitbit.com/build/reference/web-api/devices/">devices</a>, <a href = "https://dev.fitbit.com/build/reference/web-api/friends/">friends</a>, <a href = "https://dev.fitbit.com/build/reference/web-api/heartrate-timeseries/">heart rate</a>, <a href = "https://dev.fitbit.com/build/reference/web-api/nutrition/">nutrition</a>, <a href = "https://dev.fitbit.com/build/reference/web-api/sleep/">sleep</a>, and <a href = "https://dev.fitbit.com/build/reference/web-api/user/">user</a> information. </p>
+
+<hr class="light">
+<h3> Device </h3>
+
+<p> Here are some important Fitbit device metrics. The time that the device was last synced and the battery level at the time the device was last synced are listed below. It is important to encourage your participants to consistently sync their Fitbit devices to help with physical activity goal setting and self-monitoring. </p>
+
+```{r deviceData, fig.height=1, fig.width=4, fig.align='center'}
+
+
+batteryColor <- case_when(as.numeric(device$batteryLevel) >= 50 ~ "#39ff14",
+                          as.numeric(device$batteryLevel) >= 20 & as.numeric(device$batteryLevel) <= 49 ~ "#ff6700",
+                          as.numeric(device$batteryLevel) <= 19 ~ "#de1738")
+
+
+ggplot(data = device, aes(y="Battery Level")) +
+  geom_col(aes(x=as.numeric(batteryLevel)), fill = batteryColor) +
+  geom_col(aes(x = 100), alpha = 0.1, color = "black", fill = "white") +
+    geom_text(
+        aes(x = 5, label = paste0("Battery Level is ", batteryLevel, "%")),
+        hjust = 0, size = 8,
+        fontface = "bold",
+        colour = "black") +
+    theme_minimal() +
+    theme(legend.position = "none", 
+          axis.title = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank())
+
+  
+lastSynced <- as.POSIXct(device$lastSyncTime, format = "%Y-%m-%dT%H:%M:%OS", tz = "America/Chicago")
+
+```
+
+<p style="font-size:24px;color:#8B0000;font-weight:bold;"> Fitbit was last synced on `r format(lastSynced, "%B %d, %Y")` at  `r format(lastSynced, "%H:%M:%S")` </p>
+
+<hr class="light">
+<h3> Activity </h3>
+
+<p> Fitbit uses a proprietary algorithm to calculate steps and daily minutes of physical activity. The <a href = "https://dev.fitbit.com/build/reference/web-api/activity-timeseries/get-activity-timeseries-by-date-range/#Resource-Options">resource options</a> from Fitbit includes activity calories, calories, distance, elevation, floors, steps, minutes of sedentary time, lightly active minutes, fairly active minutes, and very active minutes. The exact meaning of the physical activity intensities and how the relate to moderate-to-vigorous physical activity (MVPA) is unknown.</p><br>
+
+<p> Here are two figures that report daily minutes of fairly and very active physical activity (left) and daily steps (right) from the past 7 days. The exact values of fairly and very active physical activity minutes and steps are reported as text at the top of each figure. The horizontal dotted line is the mean of activity or steps for the past 7 days. Activity data for the entirety of the intervention is reported under the plots. This table is interactive and can be filtered by date. </p><br>
+
+```{r steps and mvpa seven and twenty-eight day average, fig.width=18, fig.height=4}
+
+footprint.img <-  magick::image_read("/Users/bhelsel/Desktop/Fitbit API/reports/images/footprint.jpeg")
+activities <- mutate_if(activities, is.character, as.numeric)
+
+findActivityAverages <- function(days){
+  
+  findMean <- function(variable, days) {
+    activities %>% 
+      arrange(desc(date)) %>%
+      top_n(days, date) %>%
+      mutate(mvpa = minutesFairlyActive + minutesVeryActive,
+             pa = minutesLightlyActive + minutesFairlyActive + minutesVeryActive) %>%
+      summarise_at(variable, .funs = function(x) round(mean(x, na.rm = TRUE))) %>%
+      as_vector() %>%
+      unname()
+  }
+  
+  ggplot() +
+    geom_rect(aes(xmin = 0, xmax = 500, ymin = 0, ymax = 500), fill = "white", color = "black", size = 2) +
+    annotation_raster(footprint.img, xmin = 340, xmax = 490, ymin = 240, ymax = 490) +
+    annotate("text", x = 475, y = 60, label = paste(days, "Day"), hjust = 1, size = 14, fontface = "bold", color = "#002A3A") +
+    annotate("text", x = 10, y = 450, label = "AVERAGES", hjust = 0, size = 14, fontface = "bold", color = "#002A3A") +
+    annotate("text", x = 10, y = 350, label = paste(findMean("steps", days), "steps"), hjust = 0, size = 12) +
+    annotate("text", x = 10, y = 250, label = paste("MVPA:", findMean("mvpa", days), "min./day"), hjust = 0, size = 12) +
+    annotate("text", x = 10, y = 150, label = paste("Total PA:", findMean("pa", days), "min./day"), hjust = 0, size = 12) +
+    theme(panel.background = element_blank(), axis.text = element_blank(),
+          axis.ticks = element_blank(), axis.title = element_blank())
+}
+  
+gridExtra::grid.arrange(
+  findActivityAverages(7),
+  findActivityAverages(14),
+  findActivityAverages(28),
+  nrow = 1
+)
+
+
+```
+
+```{r fitbit mvpa plotly plot, fig.width=9, fig.height=5}
+
+activities$date <- lubridate::as_date(activities$date)
+
+p.steps <- activities %>%
+  mutate(Category = ifelse(steps >= mean(steps, na.rm = TRUE), "Above Mean", "Below Mean")) %>%
+  rename("Date" = "date", "Steps" = "steps") %>%
+  ggplot(aes(y = Steps)) +
+  geom_hline(aes(yintercept = mean(Steps)), color = "#000000", linetype = "dashed") +
+  geom_col(aes(x = Date, fill = Category), color = "#000000") +
+  theme_minimal() + 
+  scale_fill_manual(values = c("#002A3A", "#bf3626")) +
+  scale_x_date(date_breaks = "1 day", date_labels = "%b %d") +
+  scale_y_continuous(breaks = seq(0, 30000, 1000)) +
+  theme(legend.position = "none", 
+        plot.title = element_blank(), 
+        axis.title = element_blank(), 
+        panel.background = element_rect(color = "white"),
+        panel.grid = element_blank(),
+        axis.line = element_line(color = "black", 1))
+
+
+p.steps.plotly <- ggplotly(p.steps, dynamicTicks = TRUE) %>%
+  layout(showlegend = FALSE, xaxis = list(rangeslider = list(visible = TRUE),
+                                          rangeselector = list(
+                                            buttons = list(
+                                              list(count=7, label="1w", step="day", stepmode="backward"),
+                                              list(count=1, label="1m", step="month", stepmode="backward"),
+                                              list(label="ALL", step="all")))))
+
+p.mvpa <- activities %>%
+  mutate(MVPA = minutesFairlyActive+minutesVeryActive,
+         Category = ifelse(MVPA >= mean(MVPA, na.rm = TRUE), "Above Mean", "Below Mean")) %>%
+  rename("Date" = "date") %>%
+  ggplot(aes(y = MVPA)) +
+  geom_hline(aes(yintercept = mean(MVPA)), color = "#000000", linetype = "dashed") +
+  geom_col(aes(x = Date, fill = Category), color = "#000000") +
+  theme_minimal() +
+  scale_fill_manual(values = c("#002A3A", "#bf3626")) +
+  scale_x_date(date_breaks = "1 day", date_labels = "%b %d") +
+  scale_y_continuous(breaks = seq(0, 150, 10)) +
+  theme(legend.position = "none", 
+        plot.title = element_blank(),
+        axis.title = element_blank(), 
+        panel.background = element_rect(color = "white"),
+        panel.grid = element_blank(),
+        axis.line = element_line(color = "black", 1))
+
+p.mvpa.plotly <- ggplotly(p.mvpa, dynamicTicks = TRUE) %>%
+  layout(showlegend = FALSE, xaxis = list(rangeslider = list(visible = TRUE),
+                                          rangeselector = list(
+                                            buttons = list(
+                                              list(count=7, label="1w", step="day", stepmode="backward"),
+                                              list(count=1, label="1m", step="month", stepmode="backward"),
+                                              list(label="ALL", step="all")))))
+
+annotations = list(list(x = 0.2, y = 1.0,  text = "Steps", 
+                        xref = "paper", yref = "paper", xanchor = "center", 
+                        yanchor = "bottom", showarrow = FALSE),  
+                   list(x = 0.8, y = 1, text = "MVPA", xref = "paper", 
+                        yref = "paper", xanchor = "center", yanchor = "bottom", showarrow = FALSE))
+
+subplot(p.steps.plotly, p.mvpa.plotly) %>% layout(annotations = annotations)
+  
+
+```
+
+```{r reactable table}
+
+activities %>%
+  arrange(desc(date)) %>%
+  mutate(distance = round(distance, 2)) %>%
+  select(date, steps, minutesSedentary, minutesLightlyActive, minutesFairlyActive, minutesVeryActive,
+         activityCalories, calories, distance, elevation, floors) %>%
+  reactable(columns = list(
+            date = colDef(name = "Date", filterable = TRUE, align = "center", minWidth = 125),
+            steps = colDef(name = "Steps", align = "center"),
+            minutesSedentary = colDef(name = "Sedentary", align = "center", minWidth = 110),
+            minutesLightlyActive = colDef(name = "Lightly Active", align = "center"),
+            minutesFairlyActive = colDef(name = "Fairly Active", align = "center"),
+            minutesVeryActive = colDef(name = "Very Active", align = "center"),
+            activityCalories = colDef(name = "Activity", align = "center"),
+            calories = colDef(name = "Daily", align = "center"), 
+            distance = colDef(name = "Distance", align = "center"), 
+            elevation = colDef(name = "Elevation", align = "center"),
+            floors = colDef(name = "Floors", align = "center")
+            ),
+          columnGroups = list(
+            colGroup(name="Physical Activity", 
+                     columns = c( "steps", "minutesSedentary", "minutesLightlyActive", 
+                                  "minutesFairlyActive", "minutesVeryActive"), 
+                     align = "center"),
+            colGroup(name="Calories", 
+                     columns = c("activityCalories", "calories"), 
+                     align = "center")
+            ),
+          showPageSizeOptions = TRUE,
+          pageSizeOptions = c(7, 14, 21, 28, 35),
+          defaultPageSize = 7,
+          searchable = TRUE,
+          striped = TRUE,
+          highlight = TRUE,
+          bordered = TRUE,
+          width = 920,
+          defaultColDef = colDef(vAlign = "center", headerVAlign = "center"),
+          theme = reactableTheme(
+            borderColor = "#002A3A",
+            borderWidth = 2,
+            stripedColor = "#b2bfc3",
+            highlightColor = "#7f949c",
+            cellPadding = "8px 12px",
+            style = list(fontFamily = "-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif"),
+            searchInputStyle = list(width = "100%")
+            )
+          )
+
+```
+
+<hr class="light">
+<h3> Recent Exercise </h3>
+
+```{r exercise log, fig.width=18, fig.height=4}
+
+heart.img <-  magick::image_read("/Users/bhelsel/Desktop/Fitbit API/reports/images/heart.jpeg")
+
+# Most recent session is equal to 1
+exerciseLogplot <- function(session=1){
+  ggplot() +
+  geom_rect(aes(xmin = 0, xmax = 500, ymin = 0, ymax = 500), fill = "white", color = "black", size = 2) +
+  annotation_raster(heart.img, xmin = 300, xmax = 450, ymin = 150, ymax = 400) +
+  annotate("text", x = 475, y = 50, label = format(as.Date(exerciseLog$date[session]), "%B %d, %Y"), hjust = 1, size = 12, fontface = "bold") +
+  annotate("text", x = 10, y = 450, label = exerciseLog$type[session], hjust = 0, size = 12, fontface = "bold") +
+  annotate("text", x = 10, y = 350, label = paste(round(as.numeric(exerciseLog$duration[session])), "minutes"), hjust = 0, size = 12) +
+  annotate("text", x = 10, y = 250, label = paste(exerciseLog$calories[session], "kcals"), hjust = 0, size = 12) +
+  annotate("text", x = 10, y = 150, label = paste(exerciseLog$hr[session], "avg bpm"), hjust = 0, size = 12) +
+  theme(panel.background = element_blank(), axis.text = element_blank(),
+        axis.ticks = element_blank(), axis.title = element_blank())
+}
+   
+gridExtra::grid.arrange(
+  exerciseLogplot(1),
+  exerciseLogplot(2),
+  exerciseLogplot(3),
+  nrow = 1
+)
+
+  
+```
+
+<h3> Exercise Log </h3> 
+
+```{r reactable table for recent workout sessions}
+
+exerciseLog %>%
+  arrange(desc(date)) %>%
+  select(date, time, type, duration, steps, calories, hr) %>%
+  reactable(columns = list(
+            date = colDef(name = "Date", filterable = TRUE, align = "center"),
+            time = colDef(name = "Time", align = "center"),
+            type = colDef(name = "Type", align = "center"),
+            duration = colDef(name = "Duration (minutes)", align = "center"),
+            steps = colDef(name = "Steps", align = "center"),
+            calories = colDef(name = "Calories", align = "center"),
+            hr = colDef(name = "Heart Rate (bpm)", align = "center")
+            ),
+          showPageSizeOptions = TRUE,
+          pageSizeOptions = c(5, 10, 15, 20, 25),
+          defaultPageSize = 7,
+          searchable = TRUE,
+          striped = TRUE,
+          highlight = TRUE,
+          bordered = TRUE,
+          width = 920,
+          defaultColDef = colDef(vAlign = "center", headerVAlign = "center"),
+          theme = reactableTheme(
+            borderColor = "#002A3A",
+            borderWidth = 2,
+            stripedColor = "#b2bfc3",
+            highlightColor = "#7f949c",
+            cellPadding = "8px 12px",
+            style = list(fontFamily = "-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif"),
+            searchInputStyle = list(width = "100%")
+            )
+          )
+
+```
+
+
+<hr class="light">
+<h3> Heart Rate </h3>
+
+<p> Fitbit devices collect a continuous stream of heart rate data that can be used to determine physical activity intensity and wear time. Down syndrome-specific maximal heart rate equations and daily resting heart rate can be used to calculate heart rate reserve. The 11th edition of the ACSM Guidelines for Exercise Testing and Prescription (page 148, table 5.2) recommend classifying physical activity intensities based on heart rate reserve into very light (< 30% HRR), light (30-39% HRR), moderate (40-59% HRR), vigorous (60-89% HRR), and near maximal (≥ 90% HRR). This report also divides very light into sedentary (< 20% HRR) and very light (20-29% HRR) activity. Non-wear time is determined to be the time that the Fitbit is not collecting a valid heart rate measurement. </p><br>
+
+```{r fitbit heart rate reserve physical activity , fig.width=9, fig.height=5}
+
+heart$date <- lubridate::as_date(heart$date)
+
+pa.types1 <- heart %>%
+  mutate(pa = near.maximal + vigorous + moderate + light + very.light) %>%
+  select(date, nonwear, sleep, sedentary, pa) %>%
+  pivot_longer(cols = nonwear:pa) %>%
+  mutate(Type = factor(name, levels = c("pa", "sedentary", "nonwear", "sleep"), 
+                            labels = c("Physical Activity", "Sedentary", "Nonwear", "Sleep"))) %>%
+  rename("Date" = "date", "Minutes" = "value") %>%
+  ggplot(aes(x = Date)) +
+  geom_col(aes(y = Minutes, fill = Type), color = "black") +
+  theme_minimal() + 
+  scale_x_date(date_breaks = "1 day", date_labels = "%b %d") +
+  scale_y_continuous(breaks = seq(0, 1440, 100)) +
+  scale_fill_manual(values = MetBrewer::met.brewer("Java", 4, type = "discrete")) +
+  theme(legend.position = "none", 
+        plot.title = element_blank(), 
+        axis.title = element_blank(), 
+        panel.background = element_rect(color = "white"),
+        panel.grid = element_blank(),
+        axis.line = element_line(color = "black", 1))
+
+pa.types1.plotly <- ggplotly(pa.types1, dynamicTicks = TRUE) %>%
+  layout(showlegend = FALSE, xaxis = list(rangeslider = list(visible = TRUE),
+                                          rangeselector = list(
+                                            buttons = list(
+                                              list(count=7, label="1w", step="day", stepmode="backward"),
+                                              list(count=1, label="1m", step="month", stepmode="backward"),
+                                              list(label="ALL", step="all")))))
+
+pa.types2 <- heart %>%
+  select(date, very.light, light, mvpa) %>%
+  pivot_longer(cols = very.light:mvpa) %>%
+  mutate(Intensity = factor(name, levels = c("mvpa", "light", "very.light"), 
+                            labels = c("MVPA", "Light", "Very Light"))) %>%
+  rename("Date" = "date", "Minutes" = "value") %>%
+  ggplot(aes(x = Date)) +
+  geom_col(aes(y = Minutes, fill = Intensity), color = "black") +
+  theme_minimal() + 
+  scale_x_date(date_breaks = "1 day", date_labels = "%b %d") +
+  scale_y_continuous(breaks = seq(0, 1440, 50)) +
+  scale_fill_manual(values = c("#a00e00", "#0086a8", "#132b69")) +
+  theme(legend.position = "none", 
+        plot.title = element_blank(), 
+        axis.title = element_blank(), 
+        panel.background = element_rect(color = "white"),
+        panel.grid = element_blank(),
+        axis.line = element_line(color = "black", 1))
+
+pa.types2.plotly <- ggplotly(pa.types2, dynamicTicks = TRUE) %>%
+  layout(showlegend = FALSE, xaxis = list(rangeslider = list(visible = TRUE),
+                                          rangeselector = list(
+                                            buttons = list(
+                                              list(count=7, label="1w", step="day", stepmode="backward"),
+                                              list(count=1, label="1m", step="month", stepmode="backward"),
+                                              list(label="ALL", step="all")))))
+
+annotations = list(list(x = 0.2, y = 1.0,  text = "Activity Type", 
+                        xref = "paper", yref = "paper", xanchor = "center", 
+                        yanchor = "bottom", showarrow = FALSE),  
+                   list(x = 0.8, y = 1, text = "Activity Intensity", xref = "paper", 
+                        yref = "paper", xanchor = "center", yanchor = "bottom", showarrow = FALSE))
+
+subplot(pa.types1.plotly, pa.types2.plotly) %>% layout(annotations = annotations)
+
+```
+
+
+
