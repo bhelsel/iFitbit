@@ -155,10 +155,10 @@ exerciseLog <- function(directory, id, limit = 25){
   calories <- activities[[1]]$calories
   hr <- activities[[1]]$averageHeartRate
   data <- data.frame(cbind(date, time, type, duration, steps, calories, hr))
+  data <- data[data$duration >= 1, ]
   database <- grep(id, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
   con <- DBI::dbConnect(RSQLite::SQLite(), database)
   DBI::dbWriteTable(con, "exerciseLog", data, overwrite = TRUE)
   DBI::dbDisconnect(con)
 }
-
 
