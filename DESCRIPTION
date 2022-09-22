@@ -1,11 +1,21 @@
 Package: iFitbit
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Extract Data from the Fitbit API
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Brian Helsel
+Maintainer: Brian Helsel <bhelsel80@gmail.com>
+Description: This R package extracts activity, sleep, device, and profile data
+    from the Fitbit API.
+Imports:
+    DBI,
+    RCurl,
+    RSQLite,
+    httr,
+    jsonlite,
+    magrittr,
+    dplyr,
+    rmarkdown
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 7.2.1
