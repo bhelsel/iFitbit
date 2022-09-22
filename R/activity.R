@@ -1,32 +1,21 @@
-#' @title FUNCTION_TITLE
-#' @description FUNCTION_DESCRIPTION
-#' @param directory PARAM_DESCRIPTION
-#' @param id PARAM_DESCRIPTION
-#' @param resource.options PARAM_DESCRIPTION, Default: c()
-#' @param start.date PARAM_DESCRIPTION, Default: ''
-#' @param end.date PARAM_DESCRIPTION, Default: ''
-#' @return OUTPUT_DESCRIPTION
-#' @details DETAILS
-#' @examples
-#' \dontrun{
-#' if(interactive()){
-#'  #EXAMPLE1
-#'  }
-#' }
+#' @title Extract Activities from the Fitbit API
+#' @description Extract calories, distance, elevation, physical activity, and steps from the Fitbit API.
+#' @param token.pathname Path name to the Fitbit API access token.
+#' @param resource The resource of the data to be returned, Default: "All Resources"
+#' @param start.date The start date specified in the format YYYY-MM-DD or today, Default: Sys.Date()
+#' @param end.date The end date specified in the format YYYY-MM-DD or today, Default: Sys.Date()
+#' @return Writes the activities to a SQL database stored in the data folder.
+#' @details Extract calories, distance, elevation, physical activity, and steps from the Fitbit API.
 #' @seealso
 #'  \code{\link[jsonlite]{toJSON, fromJSON}}
 #'  \code{\link[httr]{content}}, \code{\link[httr]{GET}}
 #'  \code{\link[DBI]{dbConnect}}, \code{\link[DBI]{dbWriteTable}}, \code{\link[DBI]{dbDisconnect}}
 #'  \code{\link[RSQLite]{SQLite}}
-#' @rdname get.fitbit.activities
+#' @rdname get_fitbit_activities
 #' @export
-#' @importFrom jsonlite fromJSON
-#' @importFrom httr content GET
-#' @importFrom DBI dbConnect dbWriteTable dbDisconnect
-#' @importFrom RSQLite SQLite
 
-get.fitbit.activities <- function(directory, id, resource.options = c(), start.date = "", end.date = ""){
-  token.pathname <- grep(id, list.files(paste0(directory, "/tokens"), full.names = TRUE), value = TRUE)
+get_fitbit_activities <- function(token.pathname, resource = "All Resources", start.date = Sys.Date(), end.date = Sys.Date()){
+  directory <- dirname(dirname(token.pathname))
   token <- readRDS(token.pathname)
   token <- token[[2]]
   user <- token$credentials$user_id
@@ -34,7 +23,7 @@ get.fitbit.activities <- function(directory, id, resource.options = c(), start.d
   date <- seq.Date(as.Date(start.date), as.Date(end.date), "day")
   data <- data.frame(date)
 
-  if("all" %in% resource.options){
+  if("All Resources" %in% resource.options){
     resource.options <- c("activityCalories", "calories", "distance", "elevation", "floors", "minutesSedentary",
                          "minutesLightlyActive", "minutesFairlyActive", "minutesVeryActive", "steps")
   }
@@ -109,39 +98,34 @@ get.fitbit.activities <- function(directory, id, resource.options = c(), start.d
     data <- cbind(data, steps)
   }
 
-  database <- grep(id, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
+  database <- grep(user, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
   con <- DBI::dbConnect(RSQLite::SQLite(), database)
   DBI::dbWriteTable(con, "activities", data, overwrite = TRUE)
   DBI::dbDisconnect(con)
 }
 
-#' @title FUNCTION_TITLE
-#' @description FUNCTION_DESCRIPTION
-#' @param directory PARAM_DESCRIPTION
-#' @param id PARAM_DESCRIPTION
-#' @param limit PARAM_DESCRIPTION, Default: 25
-#' @return OUTPUT_DESCRIPTION
-#' @details DETAILS
-#' @examples
-#' \dontrun{
-#' if(interactive()){
-#'  #EXAMPLE1
-#'  }
-#' }
+#' @title Extract Exercise Log from the Fitbit API
+#' @description Extract date, time, type, duration, steps, calories, and heart
+#'     rate in exercise sessions from the Fitbit API.
+#' @param token.pathname Path name to the Fitbit API access token.
+#' @param limit Number of exercise records to extract from the Fitbit API, Default: 25
+#' @return Writes the exercise log to a SQL database stored in the data folder.
+#' @details Extract date, time, type, duration, steps, calories, and heart
+#'     rate in exercise sessions from the Fitbit API.
 #' @seealso
-#'  \code{\link[jsonlite]{toJSON, fromJSON}}
-#'  \code{\link[httr]{content}}, \code{\link[httr]{GET}}
-#'  \code{\link[DBI]{dbConnect}}, \code{\link[DBI]{dbWriteTable}}, \code{\link[DBI]{dbDisconnect}}
+#'  \code{\link[jsonlite]{toJSON, fromJSON}},
+#'  \code{\link[httr]{content}}, \code{\link[httr]{GET}},
+#'  \code{\link[DBI]{dbConnect}}, \code{\link[DBI]{dbWriteTable}}, \code{\link[DBI]{dbDisconnect}},
 #'  \code{\link[RSQLite]{SQLite}}
-#' @rdname exerciseLog
+#' @rdname get_fitbit_exercise_log
 #' @export
 #' @importFrom jsonlite fromJSON
 #' @importFrom httr content GET
 #' @importFrom DBI dbConnect dbWriteTable dbDisconnect
 #' @importFrom RSQLite SQLite
 
-exerciseLog <- function(directory, id, limit = 25){
-  token.pathname <- grep(id, list.files(paste0(directory, "/tokens"), full.names = TRUE), value = TRUE)
+get_fitbit_exercise_log <- function(token.pathname, limit = 25){
+  directory <- dirname(dirname(token.pathname))
   token <- readRDS(token.pathname)
   token <- token[[2]]
   user <- token$credentials$user_id
@@ -156,9 +140,9 @@ exerciseLog <- function(directory, id, limit = 25){
   hr <- activities[[1]]$averageHeartRate
   data <- data.frame(cbind(date, time, type, duration, steps, calories, hr))
   data <- data[data$duration >= 1, ]
-  database <- grep(id, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
+  database <- grep(user, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
   con <- DBI::dbConnect(RSQLite::SQLite(), database)
-  DBI::dbWriteTable(con, "exerciseLog", data, overwrite = TRUE)
+  DBI::dbWriteTable(con, "exercise_log", data, overwrite = TRUE)
   DBI::dbDisconnect(con)
 }
 

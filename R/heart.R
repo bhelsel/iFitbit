@@ -1,13 +1,34 @@
-####### Add part to extract last resting heart rate from file, if needed. Need to add resting heart rate to heart files.
-### This will be useful if not exporting all the date range to make it less likely to assign a default value.
+#' @title FUNCTION_TITLE
+#' @description FUNCTION_DESCRIPTION
+#' @param token.pathname PARAM_DESCRIPTION
+#' @param start.date PARAM_DESCRIPTION, Default: Sys.Date()
+#' @param end.date PARAM_DESCRIPTION, Default: Sys.Date()
+#' @param detail.level PARAM_DESCRIPTION, Default: '1min'
+#' @return OUTPUT_DESCRIPTION
+#' @details DETAILS
+#' @examples
+#' \dontrun{
+#' if(interactive()){
+#'  #EXAMPLE1
+#'  }
+#' }
+#' @seealso
+#'  \code{\link[DBI]{dbConnect}}, \code{\link[DBI]{dbExistsTable}}, \code{\link[DBI]{dbReadTable}}, \code{\link[DBI]{dbWriteTable}}, \code{\link[DBI]{dbDisconnect}}
+#'  \code{\link[RSQLite]{SQLite}}
+#'  \code{\link[dplyr]{distinct}}, \code{\link[dplyr]{case_when}}, \code{\link[dplyr]{summarise_all}}, \code{\link[dplyr]{select}}
+#'  \code{\link[utils]{head}}
+#'  \code{\link[jsonlite]{toJSON, fromJSON}}
+#'  \code{\link[httr]{content}}, \code{\link[httr]{GET}}
+#' @rdname get_fitbit_heart_intraday
+#' @export
 
-
-get.fitbit.heart.intraday <- function(directory, id, start.date = "", end.date = "", detail.level = "1min"){
-  token.pathname <- grep(id, list.files(paste0(directory, "/tokens"), full.names = TRUE), value = TRUE)
+get_fitbit_heart_intraday <- function(token.pathname, start.date = Sys.Date(),
+                                      end.date = Sys.Date(), detail.level = "1min"){
+  directory <- dirname(dirname(token.pathname))
   token <- readRDS(token.pathname)
   token <- token[[2]]
   user <- token$credentials$user_id
-  database <- grep(id, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
+  database <- grep(user, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
   con <- DBI::dbConnect(RSQLite::SQLite(), database)
 
   if(DBI::dbExistsTable(con, "heart")){
@@ -18,7 +39,7 @@ get.fitbit.heart.intraday <- function(directory, id, start.date = "", end.date =
   }
 
   # Calculate max heart rate using a Down syndrome specific equation
-  profile <- get.fitbit.profile(token.pathname)
+  profile <- get_fitbit_profile(token.pathname)
   age <- profile$user$age
   max.hr <- round(210 - (0.56 * age) - 31)
   # Create a vector of dates from start to end date
@@ -34,12 +55,11 @@ get.fitbit.heart.intraday <- function(directory, id, start.date = "", end.date =
   }
 
   # Extract sleep date
-  sleep <- get.fitbit.sleep(directory = directory, id = id, start.date = start.date, end.date = end.date, toSQL = FALSE, returnData = TRUE)
+  sleep <- get_fitbit_sleep(token.pathname, start.date = start.date, end.date = end.date, toSQL = FALSE, returnData = TRUE)
 
   # Loop through the days to pull values from the heart rate intraday data and calculate intensities
   for(date in dates){
-    `%>%` <- dplyr::`%>%`
-    print(paste0("Extracting Fitbit Heart Rate Intraday Data for ", id, " on ", date))
+    print(paste0("Extracting Fitbit Heart Rate Intraday Data for ", user, " on ", date))
     heart.url <- paste0("https://api.fitbit.com/1/", "user/", user, "/", "activities/heart", sprintf("/date/%s/1d/%s.json", date, detail.level))
     datetime <- seq.POSIXt(as.POSIXct(paste(date, "00:00:00"), format = "%Y-%m-%d %H:%M:%S"), as.POSIXct(paste(date, "23:59:59"), format = "%Y-%m-%d %H:%M:%S"), "min")
     datetime <- format(datetime, "%Y-%m-%d %H:%M:%S")
@@ -99,7 +119,7 @@ get.fitbit.heart.intraday <- function(directory, id, start.date = "", end.date =
                                            data$hr.bpm >= hrr30 & data$hr.bpm < hrr40 & data$sleep!=1 ~ "Light (30-39% HRR)",
                                            data$hr.bpm >= hrr40 & data$hr.bpm < hrr60 & data$sleep!=1 ~ "Moderate (40-59% HRR)",
                                            data$hr.bpm >= hrr60 & data$hr.bpm < hrr90 & data$sleep!=1 ~ "Vigorous (60-89% HRR)",
-                                           data$hr.bpm >= hrr90 & data$sleep!=1 ~ "Near Maximal (≥ 90% HRR)")
+                                           data$hr.bpm >= hrr90 & data$sleep!=1 ~ "Near Maximal (>= 90% HRR)")
 
       data$nonwear <- ifelse(data$hrr.percent=="Nonwear", 1, 0)
       data$sedentary <- ifelse(data$hrr.percent=="Sedentary (< 20% HRR)", 1, 0)
@@ -107,8 +127,8 @@ get.fitbit.heart.intraday <- function(directory, id, start.date = "", end.date =
       data$light <- ifelse(data$hrr.percent=="Light (30-39% HRR)", 1, 0)
       data$moderate <- ifelse(data$hrr.percent=="Moderate (40-59% HRR)", 1, 0)
       data$vigorous <- ifelse(data$hrr.percent=="Vigorous (60-89% HRR)", 1, 0)
-      data$near.maximal <- ifelse(data$hrr.percent=="Near Maximal (≥ 90% HRR)", 1, 0)
-      data$mvpa <- ifelse(data$hrr.percent=="Moderate (40-59% HRR)" | data$hrr.percent=="Vigorous (60-89% HRR)" | data$hrr.percent=="Near Maximal (≥ 90% HRR)", 1, 0)
+      data$near.maximal <- ifelse(data$hrr.percent=="Near Maximal (>= 90% HRR)", 1, 0)
+      data$mvpa <- ifelse(data$hrr.percent=="Moderate (40-59% HRR)" | data$hrr.percent=="Vigorous (60-89% HRR)" | data$hrr.percent=="Near Maximal (>= 90% HRR)", 1, 0)
       heartActivities <- rbind(heartActivities, cbind(date = date, data %>% dplyr::summarise_at(c("sleep", names(dplyr::select(data, nonwear:mvpa))), sum, na.rm = TRUE)))
     }
 

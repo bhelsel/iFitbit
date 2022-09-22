@@ -1,21 +1,13 @@
 # Authorize App and Retrieve Access and Refresh Tokens -----------------------------------------------------------
 
-#' @title FUNCTION_TITLE
-#' @description FUNCTION_DESCRIPTION
-#' @param directory PARAM_DESCRIPTION
-#' @param study.name PARAM_DESCRIPTION
-#' @param study.id PARAM_DESCRIPTION
-#' @param fitbit.key PARAM_DESCRIPTION
-#' @param fitbit.secret PARAM_DESCRIPTION
-#' @param fitbit.callback PARAM_DESCRIPTION
-#' @return OUTPUT_DESCRIPTION
-#' @details DETAILS
-#' @examples
-#' \dontrun{
-#' if(interactive()){
-#'  #EXAMPLE1
-#'  }
-#' }
+#' @title Authorize app for Fitbit API use
+#' @description Use your Fitbit key and secret to authorize your app for Fitbit API use
+#' @param directory Directory location where the access tokens and data should be stored.
+#' @inheritParams httr::oauth_app
+#' @return Returns the token retrieved from Fitbit API authorization and saves it
+#'     to a token folder within the directory. It also creates a data folder and
+#'     a SQL database within the directory.
+#' @details Use your Fitbit key and secret to authorize your app for Fitbit API use
 #' @seealso
 #'  \code{\link[httr]{add_headers}}
 #'  \code{\link[httr]{content_type}}
@@ -26,15 +18,11 @@
 #'  \code{\link[DBI]{dbConnect}}
 #'  \code{\link[DBI]{dbDisconnect}}
 #'  \code{\link[RSQLite]{SQLite}}
-#' @rdname authorize.bhelselR.fitbit.app
+#' @rdname authorize_fitbit_app
 #' @export
-#' @importFrom httr add_headers content_type oauth_endpoint oauth_app oauth2.0_token
-#' @importFrom RCurl base64Encode
-#' @importFrom DBI dbConnect dbDisconnect
-#' @importFrom RSQLite SQLite
 
-authorize.bhelselR.fitbit.app <- function(directory, study.name, study.id, fitbit.key, fitbit.secret, fitbit.callback){
-  header <- httr::add_headers(Authorization=paste0("Basic ", RCurl::base64Encode(charToRaw(paste0(fitbit.key, ":", fitbit.secret)))))
+authorize_fitbit_app <- function(directory, appname, key, secret = NULL, redirect_uri = httr::oauth_callback()){
+  header <- httr::add_headers(Authorization=paste0("Basic ", RCurl::base64Encode(charToRaw(paste0(key, ":", secret)))))
   content_type <- httr::content_type("application/x-www-form-urlencoded")
 
   # Define scopes to request
@@ -46,7 +34,7 @@ authorize.bhelselR.fitbit.app <- function(directory, study.name, study.id, fitbi
   access <- "https://api.fitbit.com/oauth2/token"
   endpoint <- httr::oauth_endpoint(request, authorize, access)
 
-  myapp <- httr::oauth_app("bhelselr", key=fitbit.key, secret=fitbit.secret, redirect_uri=fitbit.callback)
+  myapp <- httr::oauth_app(appname=appname, key=key, secret=secret, redirect_uri=redirect_uri)
 
   # Authorize
   token <- httr::oauth2.0_token(endpoint, myapp, scope=scope, config_init=c(header, content_type), cache=FALSE)
@@ -57,15 +45,15 @@ authorize.bhelselR.fitbit.app <- function(directory, study.name, study.id, fitbi
   if(!dir.exists(paste0(directory, "/tokens"))){
     dir.create(paste0(directory, "/tokens"))
   }
-
-  saveRDS(token, file = paste0(directory, "/tokens/", study.name, study.id, ".RData"))
+  user_id <- token[[2]]$credentials$user_id
+  saveRDS(token, file = paste0(directory, "/tokens/", user_id, ".RData"))
   print(paste0("Saved the access and refresh tokens to: ", directory, ". Access token will expire at ", expires.at))
 
   # Create a SQL Database to store the data
   if(!dir.exists(paste0(directory, "/data"))){
     dir.create(paste0(directory, "/data"))
   }
-  con <- DBI::dbConnect(RSQLite::SQLite(), paste0(directory, "/data/", study.name, study.id, ".ChefBoyID"))
+  con <- DBI::dbConnect(RSQLite::SQLite(), paste0(directory, "/data/", user_id, ".db"))
   DBI::dbDisconnect(con)
 
   return(token)
@@ -73,20 +61,13 @@ authorize.bhelselR.fitbit.app <- function(directory, study.name, study.id, fitbi
 
 # Refresh Token -----------------------------------------------------------
 
-#' @title FUNCTION_TITLE
-#' @description FUNCTION_DESCRIPTION
-#' @param token.pathname PARAM_DESCRIPTION
-#' @param fitbit.key PARAM_DESCRIPTION
-#' @param fitbit.secret PARAM_DESCRIPTION
-#' @param force.refresh PARAM_DESCRIPTION, Default: FALSE
-#' @return OUTPUT_DESCRIPTION
-#' @details DETAILS
-#' @examples
-#' \dontrun{
-#' if(interactive()){
-#'  #EXAMPLE1
-#'  }
-#' }
+#' @title Refresh Fitbit API Token
+#' @description Refresh the Fitbit API Token after it expires to access Fitbit API
+#' @param token.pathname Path name to the token that needs to be refreshed.
+#' @inheritParams httr::oauth_app
+#' @param force.refresh Force the refresh token when it has not expired, Default: FALSE
+#' @return Refreshes the token retrieved from Fitbit API authorization and saves it to directory.
+#' @details Refresh the Fitbit API Token after it expires to access Fitbit API
 #' @seealso
 #'  \code{\link[httr]{add_headers}}
 #'  \code{\link[httr]{content_type}}
@@ -94,17 +75,14 @@ authorize.bhelselR.fitbit.app <- function(directory, study.name, study.id, fitbi
 #'  \code{\link[httr]{content}}
 #'  \code{\link[RCurl]{base64}}
 #'  \code{\link[utils]{modifyList}}
-#' @rdname refresh.token.bhelselR.fitbit.app
+#' @rdname refresh_fitbit_token
 #' @export
-#' @importFrom httr add_headers content_type POST content
-#' @importFrom RCurl base64Encode
-#' @importFrom utils modifyList
 
-refresh.token.bhelselR.fitbit.app <- function(token.pathname, fitbit.key, fitbit.secret, force.refresh = FALSE){
+refresh_fitbit_token <- function(token.pathname, key, secret = NULL, force.refresh = FALSE){
   token <- readRDS(token.pathname)
   if(difftime(token$timestamp + token[[2]]$credentials$expires_in, Sys.time()) <= 5 | force.refresh==TRUE){
     print("Token expired. Refreshing the token now.")
-    header <- httr::add_headers(Authorization=paste0("Basic ", RCurl::base64Encode(charToRaw(paste0(fitbit.key, ":", fitbit.secret)))))
+    header <- httr::add_headers(Authorization=paste0("Basic ", RCurl::base64Encode(charToRaw(paste0(key, ":", secret)))))
     content_type <- httr::content_type("application/x-www-form-urlencoded")
     if("errors" %in% names(token[[2]]$credentials)){
       token[[2]]$credentials$errors <- NULL
@@ -117,7 +95,7 @@ refresh.token.bhelselR.fitbit.app <- function(token.pathname, fitbit.key, fitbit
     refresh.data <- httr::content(response)
     new.credentials <- utils::modifyList(token[[2]]$credentials, refresh.data)
     token[[2]]$credentials <- new.credentials # Update access and refresh tokens
-    token$timestamp <- Sys.time() # Update timestamp
+    token$timestamp <- Sys.time() # Update time stamp
     saveRDS(token, file = token.pathname)
     expires.at <- token$timestamp + token[[2]]$credentials$expires_in
     print(paste0("Saved the new token. The new token will expire at ", expires.at))

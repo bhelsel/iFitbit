@@ -1,7 +1,15 @@
+#' @title Extract Profile from the Fitbit API
+#' @description Extract profile information from the Fitbit API
+#' @param token.pathname Path name to the Fitbit API access token.
+#' @return Returns the Fitbit Profile of the user
+#' @details Extract profile information from the Fitbit API
+#' @seealso
+#'  \code{\link[jsonlite]{toJSON, fromJSON}}
+#'  \code{\link[httr]{content}}, \code{\link[httr]{GET}}
+#' @rdname get_fitbit_profile
+#' @export
 
-# magick::image_read displays images
-get.fitbit.profile <- function(token.pathname){
-  id <- gsub(".RData", "", basename(token.pathname))
+get_fitbit_profile <- function(token.pathname){
   token <- readRDS(token.pathname)
   token <- token[[2]]
   user <- token$credentials$user_id
@@ -10,6 +18,6 @@ get.fitbit.profile <- function(token.pathname){
   return(profile)
 }
 
-# 
+# magick::image_read displays images
 # profile <- get.fitbit.profile(token)
 # names.profile <- names(profile$user)

@@ -6,20 +6,6 @@ FitbitAPI.Render.Reports <- function(directory, id){
                     quiet = TRUE)
 }
 
-FitbitAPI.DropBoxTransfer <- function(){
-  zip(zipfile = "/Users/bhelsel/Desktop/Fitbit API/reports/Individual Reports/ChefBoyID_FitbitReports.zip", 
-      files = dir("/Users/bhelsel/Desktop/Fitbit API/reports/Individual Reports", full.names = TRUE), flags = "-r9Xj")
-  
-  file.rename(from = "/Users/bhelsel/Desktop/Fitbit API/reports/Individual Reports/ChefBoyID_FitbitReports.zip",
-              to = "/Users/bhelsel/KUMC- CPAWM Dropbox/CPAWM KUMC/ChefBoyID/ChefBoyID_FitbitReports.zip")
-  
-  unzip(zipfile = "/Users/bhelsel/KUMC- CPAWM Dropbox/CPAWM KUMC/ChefBoyID/ChefBoyID_FitbitReports.zip",
-        junkpaths = TRUE, exdir = "/Users/bhelsel/KUMC- CPAWM Dropbox/CPAWM KUMC/ChefBoyID")
-  
-  file.remove("/Users/bhelsel/KUMC- CPAWM Dropbox/CPAWM KUMC/ChefBoyID/ChefBoyID_FitbitReports.zip")
-  
-}
-
 
 
 
