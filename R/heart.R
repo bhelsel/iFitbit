@@ -34,8 +34,11 @@ get_fitbit_heart_intraday <- function(token.pathname, start.date = Sys.Date(),
   if(DBI::dbExistsTable(con, "heart")){
     currentData <- DBI::dbReadTable(con, "heart")
     currentData <- dplyr::distinct(currentData)
-    currentData <- currentData[1:(nrow(currentData)-8), ]
-    start.date <- as.character(as.Date(utils::tail(currentData$date, 1)) + 1)
+    if(nrow(currentData) >= 8) {
+      currentData <- currentData[1:(nrow(currentData)-8), ]
+      start.date <- as.character(as.Date(utils::tail(currentData$date, 1)) + 1)
+    }
+    if(nrow(currentData) < 8) rm(currentData)
   }
 
   # Calculate max heart rate using a Down syndrome specific equation

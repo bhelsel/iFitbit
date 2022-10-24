@@ -14,7 +14,14 @@ Imports:
     jsonlite,
     magrittr,
     dplyr,
-    rmarkdown
+    rmarkdown,
+    ggplot2,
+    gridExtra,
+    magick,
+    plotly,
+    purrr,
+    reactable,
+    tidyr
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

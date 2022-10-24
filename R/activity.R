@@ -23,75 +23,75 @@ get_fitbit_activities <- function(token.pathname, resource = "All Resources", st
   date <- seq.Date(as.Date(start.date), as.Date(end.date), "day")
   data <- data.frame(date)
 
-  if("All Resources" %in% resource.options){
-    resource.options <- c("activityCalories", "calories", "distance", "elevation", "floors", "minutesSedentary",
+  if("All Resources" %in% resource){
+    resource <- c("activityCalories", "calories", "distance", "elevation", "floors", "minutesSedentary",
                          "minutesLightlyActive", "minutesFairlyActive", "minutesVeryActive", "steps")
   }
 
-  if("activityCalories" %in% resource.options){
+  if("activityCalories" %in% resource){
     activityCalories.url <- paste0(url_activity, "activityCalories", sprintf("/date/%s/%s.json", start.date, end.date))
     activityCalories <- jsonlite::fromJSON(httr::content(httr::GET(activityCalories.url, token), as = "text"))[[1]][2]
     colnames(activityCalories) <- "activityCalories"
     data <- cbind(data, activityCalories)
   }
 
-  if("calories" %in% resource.options){
+  if("calories" %in% resource){
     calories.url <- paste0(url_activity, "calories", sprintf("/date/%s/%s.json", start.date, end.date))
     calories <- jsonlite::fromJSON(httr::content(httr::GET(calories.url, token), as = "text"))[[1]][2]
     colnames(calories) <- "calories"
     data <- cbind(data, calories)
   }
 
-  if("distance" %in% resource.options){
+  if("distance" %in% resource){
     distance.url <- paste0(url_activity, "distance", sprintf("/date/%s/%s.json", start.date, end.date))
     distance <- jsonlite::fromJSON(httr::content(httr::GET(distance.url, token), as = "text"))[[1]][2]
     colnames(distance) <- "distance"
     data <- cbind(data, distance)
   }
 
-  if("elevation" %in% resource.options){
+  if("elevation" %in% resource){
     elevation.url <- paste0(url_activity, "elevation", sprintf("/date/%s/%s.json", start.date, end.date))
     elevation <- jsonlite::fromJSON(httr::content(httr::GET(elevation.url, token), as = "text"))[[1]][2]
     colnames(elevation) <- "elevation"
     data <- cbind(data, elevation)
   }
 
-  if("floors" %in% resource.options){
+  if("floors" %in% resource){
     floors.url <- paste0(url_activity, "floors", sprintf("/date/%s/%s.json", start.date, end.date))
     floors <- jsonlite::fromJSON(httr::content(httr::GET(floors.url, token), as = "text"))[[1]][2]
     colnames(floors) <- "floors"
     data <- cbind(data, floors)
   }
 
-  if("minutesSedentary" %in% resource.options){
+  if("minutesSedentary" %in% resource){
     minutesSedentary.url <- paste0(url_activity, "minutesSedentary", sprintf("/date/%s/%s.json", start.date, end.date))
     minutesSedentary <- jsonlite::fromJSON(httr::content(httr::GET(minutesSedentary.url, token), as = "text"))[[1]][2]
     colnames(minutesSedentary) <- "minutesSedentary"
     data <- cbind(data, minutesSedentary)
   }
 
-  if("minutesLightlyActive" %in% resource.options){
+  if("minutesLightlyActive" %in% resource){
     minutesLightlyActive.url <- paste0(url_activity, "minutesLightlyActive", sprintf("/date/%s/%s.json", start.date, end.date))
     minutesLightlyActive <- jsonlite::fromJSON(httr::content(httr::GET(minutesLightlyActive.url, token), as = "text"))[[1]][2]
     colnames(minutesLightlyActive) <- "minutesLightlyActive"
     data <- cbind(data, minutesLightlyActive)
   }
 
-  if("minutesFairlyActive" %in% resource.options){
+  if("minutesFairlyActive" %in% resource){
     minutesFairlyActive.url <- paste0(url_activity, "minutesFairlyActive", sprintf("/date/%s/%s.json", start.date, end.date))
     minutesFairlyActive <- jsonlite::fromJSON(httr::content(httr::GET(minutesFairlyActive.url, token), as = "text"))[[1]][2]
     colnames(minutesFairlyActive) <- "minutesFairlyActive"
     data <- cbind(data, minutesFairlyActive)
   }
 
-  if("minutesVeryActive" %in% resource.options){
+  if("minutesVeryActive" %in% resource){
     minutesVeryActive.url <- paste0(url_activity, "minutesVeryActive", sprintf("/date/%s/%s.json", start.date, end.date))
     minutesVeryActive <- jsonlite::fromJSON(httr::content(httr::GET(minutesVeryActive.url, token), as = "text"))[[1]][2]
     colnames(minutesVeryActive) <- "minutesVeryActive"
     data <- cbind(data, minutesVeryActive)
   }
 
-  if("steps" %in% resource.options){
+  if("steps" %in% resource){
     steps.url <- paste0(url_activity, "steps", sprintf("/date/%s/%s.json", start.date, end.date))
     steps <- jsonlite::fromJSON(httr::content(httr::GET(steps.url, token), as = "text"))[[1]][2]
     colnames(steps) <- "steps"
