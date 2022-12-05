@@ -21,8 +21,10 @@ get_fitbit_device <- function(token.pathname){
   url_devices <- paste0("https://api.fitbit.com/1/", "user/", user, "/", "devices.json")
   device <- jsonlite::fromJSON(httr::content(httr::GET(url_devices, token), as = "text"))
   data <- data.frame(cbind(deviceVersion=device$deviceVersion, lastSyncTime=device$lastSyncTime, battery=device$battery, batteryLevel=device$batteryLevel, type=device$type))
+  if(length(data) != 0){
   database <- grep(user, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
   con <- DBI::dbConnect(RSQLite::SQLite(), database)
   DBI::dbWriteTable(con, "device", data, overwrite = TRUE)
   DBI::dbDisconnect(con)
+  }
 }
