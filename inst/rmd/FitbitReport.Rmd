@@ -7,9 +7,9 @@
 ---
 
 <hr class="heavy">
-<h2> Participant ID: `r paste0("#", id)` </h2>
-<h4> This report was created for the ChefBoyID Cooking Pilot Study </h4>
-<h4> by Brian Helsel on `r format(Sys.Date(), "%B %d, %Y")` at  `r format(Sys.time(), "%H:%M:%S")` </h4>
+<h2> Participant ID: `r paste0("#", user)` </h2>
+<h4> This report was created for the `r study_name` </h4>
+<h4> by `r report_author` on `r format(Sys.Date(), "%B %d, %Y")` at `r format(Sys.time(), "%H:%M:%S")` </h4>
 <center><img src=`r system.file("images/fitbit.logo.png", package = "iFitbit")` alt="Fitbit logo"/></center>
 
 ```{r set up, echo = FALSE, include = FALSE, warning = FALSE, message = FALSE}
