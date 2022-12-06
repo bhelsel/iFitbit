@@ -1,17 +1,11 @@
-#' @title FUNCTION_TITLE
-#' @description FUNCTION_DESCRIPTION
-#' @param token.pathname PARAM_DESCRIPTION
-#' @param start.date PARAM_DESCRIPTION, Default: Sys.Date()
-#' @param end.date PARAM_DESCRIPTION, Default: Sys.Date()
-#' @param detail.level PARAM_DESCRIPTION, Default: '1min'
-#' @return OUTPUT_DESCRIPTION
-#' @details DETAILS
-#' @examples
-#' \dontrun{
-#' if(interactive()){
-#'  #EXAMPLE1
-#'  }
-#' }
+#' @title get_fitbit_heart_intraday
+#' @description Retreives a continuous measure of heart rate from the Fitbit API
+#' @param token.pathname Full pathname to the location of the access token
+#' @param start.date The start date specified in the format YYYY-MM-DD or today, Default: Sys.Date()
+#' @param end.date The end date specified in the format YYYY-MM-DD or today, Default: Sys.Date()
+#' @param detail.level Detail level of the data points that should be included. The detail level can be '1sec', '1min', '5min', or '15min', Default: '1min'
+#' @return A measure of day-level non-wear, sleep, sedentary time, and physical activity
+#' @details Retreives a continuous measure of heart rate from the Fitbit API
 #' @seealso
 #'  \code{\link[DBI]{dbConnect}}, \code{\link[DBI]{dbExistsTable}}, \code{\link[DBI]{dbReadTable}}, \code{\link[DBI]{dbWriteTable}}, \code{\link[DBI]{dbDisconnect}}
 #'  \code{\link[RSQLite]{SQLite}}

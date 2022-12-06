@@ -1,17 +1,69 @@
-FitbitAPI.Render.Reports <- function(directory, id){
-  reports_pathname = paste0(directory, "/reports")
+#' @title get_fitbit_report
+#' @description Generates an HTML report, returns data, or writes to a CSV file
+#' @param database_pathname Full pathname to the SQL database
+#' @param reports_pathname Full pathname to the location that the HTML or CSV file should be stored, Default: NULL
+#' @param returnData Returns the combined data set, Default: TRUE
+#' @param toHTML Renders a Rmarkdown report to HTML, Default: FALSE
+#' @param toCSV Writes the full data set to a CSV file, Default: FALSE
+#' @param study_name A customized study name for the iFitbit report, Default: 'study'
+#' @param report_author A customized report author for the iFitbit report, Default: 'iFitbit'
+#' @param reportName PARAM_DESCRIPTION, Default: 'FitbitReport'
+#' @param ... Additional arguments passed to \code{\link[data.table]{fwrite}} or \code{\link[rmarkdown]{render}}
+#' @return Returns data set or generates a HTML or CSV file
+#' @details Generates an HTML report, returns data, or writes to a CSV file
+#' @seealso
+#'  \code{\link[DBI]{dbConnect}}, \code{\link[DBI]{dbReadTable}}, \code{\link[DBI]{dbDisconnect}}
+#'  \code{\link[RSQLite]{SQLite}}
+#'  \code{\link[rmarkdown]{render}}
+#'  \code{\link[data.table]{fwrite}}
+#' @rdname get_fitbit_report
+#' @export
+#' @importFrom DBI dbConnect dbReadTable dbDisconnect
+#' @importFrom RSQLite SQLite
+#' @importFrom rmarkdown render
+#' @importFrom data.table fwrite
+
+get_fitbit_report <- function(
+    database_pathname,
+    reports_pathname = NULL,
+    returnData = TRUE, toHTML = FALSE, toCSV = FALSE,
+    study_name = "study", report_author = "iFitbit",
+    reportName = "FitbitReport", ...){
+
+  # Create a directory for the report if a directory doesn't exist
   if(!dir.exists(reports_pathname)) dir.create(reports_pathname)
-  database <- grep(id, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
-  con <- DBI::dbConnect(RSQLite::SQLite(), database)
+
+  # Identify Fitbit user name for the HTML report
+  user <- strsplit(basename(database_pathname), "[.]")[[1]][1]
+
+  # Open the SQL database connection and read in the data
+  con <- DBI::dbConnect(RSQLite::SQLite(), database_pathname)
   activities <- DBI::dbReadTable(con, "activities")
-  heart <- DBI::dbReadTable(con, "heart")
   exercise_log <- DBI::dbReadTable(con, "exercise_log")
+  heart <- DBI::dbReadTable(con, "heart")
   device <- DBI::dbReadTable(con, "device")
   DBI::dbDisconnect(con)
 
-  rmarkdown::render(input = paste0(system.file(package = "iFitbit"), "/rmd/FitbitReport.Rmd"),
-                    output_file = paste0(reports_pathname, "/", id, ".html"),
-                    quiet = TRUE)
+  # Bind the data with the same length and add device attributes
+  data <- cbind(activities, exercise_log, heart)
+  attr(data, "device") <- device
+
+  if(toHTML){
+    inputRmd <- paste0(system.file(package = "iFitbit"), "/rmd/", reportName, ".Rmd")
+    outputHTML <- paste0(reports_pathname, "/", user, ".html")
+    rmarkdown::render(input = inputRmd, output_file = outputHTML, quiet = TRUE, ...)
+  }
+
+  if(toCSV){
+    data.table::fwrite(
+      data,
+      paste0(reports_pathname, "/", user, ".csv"),
+      dateTimeAs = "write.csv",
+      ...
+    )
+  }
+
+  if(returnData) return(data)
 }
 
 

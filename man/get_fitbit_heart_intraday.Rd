@@ -2,7 +2,7 @@
 % Please edit documentation in R/heart.R
 \name{get_fitbit_heart_intraday}
 \alias{get_fitbit_heart_intraday}
-\title{FUNCTION_TITLE}
+\title{get_fitbit_heart_intraday}
 \usage{
 get_fitbit_heart_intraday(
   token.pathname,
@@ -12,29 +12,22 @@ get_fitbit_heart_intraday(
 )
 }
 \arguments{
-\item{token.pathname}{PARAM_DESCRIPTION}
+\item{token.pathname}{Full pathname to the location of the access token}
 
-\item{start.date}{PARAM_DESCRIPTION, Default: Sys.Date()}
+\item{start.date}{The start date specified in the format YYYY-MM-DD or today, Default: Sys.Date()}
 
-\item{end.date}{PARAM_DESCRIPTION, Default: Sys.Date()}
+\item{end.date}{The end date specified in the format YYYY-MM-DD or today, Default: Sys.Date()}
 
-\item{detail.level}{PARAM_DESCRIPTION, Default: '1min'}
+\item{detail.level}{Detail level of the data points that should be included. The detail level can be '1sec', '1min', '5min', or '15min', Default: '1min'}
 }
 \value{
-OUTPUT_DESCRIPTION
+A measure of day-level non-wear, sleep, sedentary time, and physical activity
 }
 \description{
-FUNCTION_DESCRIPTION
+Retreives a continuous measure of heart rate from the Fitbit API
 }
 \details{
-DETAILS
-}
-\examples{
-\dontrun{
-if(interactive()){
- #EXAMPLE1
- }
-}
+Retreives a continuous measure of heart rate from the Fitbit API
 }
 \seealso{
 \code{\link[DBI]{dbConnect}}, \code{\link[DBI]{dbExistsTable}}, \code{\link[DBI]{dbReadTable}}, \code{\link[DBI]{dbWriteTable}}, \code{\link[DBI]{dbDisconnect}}

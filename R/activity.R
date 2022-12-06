@@ -132,57 +132,71 @@ get_fitbit_exercise_log <- function(token.pathname, limit = 25){
   user <- token$credentials$user_id
   activity.url <- paste0("https://api.fitbit.com/1/", "user/", user, "/", sprintf("activities/list.json?beforeDate=%s&sort=desc&offset=0&limit=%s", Sys.Date(), limit))
   activities <- jsonlite::fromJSON(httr::content(httr::GET(activity.url, token), as = "text"))
-  date <- format(as.POSIXct(activities[[1]]$startTime, format = "%Y-%m-%dT%H:%M:%OS"), "%Y-%m-%d")
-  time <- format(as.POSIXct(activities[[1]]$startTime, format = "%Y-%m-%dT%H:%M:%OS"), "%H:%M:%OS")
-  type <- activities[[1]]$activityName
-  duration <- round(activities[[1]]$activeDuration/60000, 2)
-  steps <- activities[[1]]$steps
-  calories <- activities[[1]]$calories
-  hr <- activities[[1]]$averageHeartRate
 
-  distance <- ifelse(!is.null(activities[[1]]$distance), activities[[1]]$distance, NA)
-  distanceUnit <- ifelse(!is.null(activities[[1]]$distanceUnit), activities[[1]]$distanceUnit, NA)
+  if(length(activities[[1]]) != 0){
+    date <- format(as.POSIXct(activities[[1]]$startTime, format = "%Y-%m-%dT%H:%M:%OS"), "%Y-%m-%d")
+    time <- format(as.POSIXct(activities[[1]]$startTime, format = "%Y-%m-%dT%H:%M:%OS"), "%H:%M:%OS")
+    type <- activities[[1]]$activityName
+    duration <- round(activities[[1]]$activeDuration/60000, 2)
+    steps <- activities[[1]]$steps
+    calories <- activities[[1]]$calories
+    hr <- activities[[1]]$averageHeartRate
+    distance <- ifelse(!is.null(activities[[1]]$distance), activities[[1]]$distance, NA)
+    distanceUnit <- ifelse(!is.null(activities[[1]]$distanceUnit), activities[[1]]$distanceUnit, NA)
+    logType <- activities[[1]]$logType
 
-  logType <- activities[[1]]$logType
-
-  activityLevel <-
-    1:length(activities[[1]]$activityLevel) %>%
-    lapply(.,
-           function(x) {
-             temp <- activities[[1]]$activityLevel[[x]][c("name", "minutes")]
-             temp <- as_vector(temp$minutes) %>%
-               `names<-`(c("sedentary", "lightly_active", "fairly_active", "very_active"))
-           }
-    ) %>%
-    dplyr::bind_rows()
-
-  heartZones <-
-    1:length(activities[[1]]$heartRateZones) %>%
-    lapply(.,
-           function(x) {
-             temp_names <- c("out_of_range", "fat_burn", "cardio", "peak")
-             if(!is.null(activities[[1]]$heartRateZones[[x]])){
-               temp <- activities[[1]]$heartRateZones[[x]][c("min", "max", "minutes")]
-               heart_range <- paste0(temp$min, "-", temp$max, " bpm") %>% `names<-`(paste0(temp_names, "_heart_range"))
-               minutes <- as_vector(temp$minutes) %>% `names<-`(paste0(temp_names, "_min"))
-               if("caloriesOut" %in% names(activities[[1]]$heartRateZones[[x]])){
-                 calories <- activities[[1]]$heartRateZones[[x]]["caloriesOut"] %>% as_vector() %>% `names<-`(paste0(temp_names, "_kcals"))
-                 temp <- c(heart_range, minutes, calories)
-               } else {
-                 temp <- c(heart_range, minutes)
+    if(!is.null(activities[[1]]$activityLevel)){
+      activityLevel <-
+        1:length(activities[[1]]$activityLevel) %>%
+        lapply(.,
+               function(x) {
+                 temp <- activities[[1]]$activityLevel[[x]][c("name", "minutes")]
+                 temp <- purrr::as_vector(temp$minutes) %>%
+                   `names<-`(c("sedentary", "lightly_active", "fairly_active", "very_active"))
                }
-             } else {
-               temp <- rep(NA, 12)
-               names <- c(paste0(temp_names, "_heart_range"), paste0(temp_names, "_min"), paste0(temp_names, "_kcals"))
-               names(temp) <- names
-             }
-             return(temp)
-           }
-    ) %>%
-    dplyr::bind_rows()
+        ) %>%
+        dplyr::bind_rows()
+    } else{
+      activityLevel <- NA
+    }
+
+    if(!is.null(activities[[1]]$heartRateZones)){
+      heartZones <-
+        1:length(activities[[1]]$heartRateZones) %>%
+        lapply(.,
+               function(x) {
+                 temp_names <- c("out_of_range", "fat_burn", "cardio", "peak")
+                 if(!is.null(activities[[1]]$heartRateZones[[x]])){
+                   temp <- activities[[1]]$heartRateZones[[x]][c("min", "max", "minutes")]
+                   heart_range <- paste0(temp$min, "-", temp$max, " bpm") %>% `names<-`(paste0(temp_names, "_heart_range"))
+                   minutes <- purrr::as_vector(temp$minutes) %>% `names<-`(paste0(temp_names, "_min"))
+                   if("caloriesOut" %in% names(activities[[1]]$heartRateZones[[x]])){
+                     calories <-
+                       activities[[1]]$heartRateZones[[x]]["caloriesOut"] %>%
+                       purrr::as_vector() %>%
+                       `names<-`(paste0(temp_names, "_kcals"))
+                     temp <- c(heart_range, minutes, calories)
+                   } else {
+                     temp <- c(heart_range, minutes)
+                   }
+                 } else {
+                   temp <- rep(NA, 12)
+                   names <- c(paste0(temp_names, "_heart_range"), paste0(temp_names, "_min"), paste0(temp_names, "_kcals"))
+                   names(temp) <- names
+                 }
+                 return(temp)
+               }
+        ) %>%
+        dplyr::bind_rows()
+    } else{
+      heartZones <- NA
+    }
+  } else{
+    date = time = type = duration = steps = calories = hr = distance = distanceUnit = logType = activityLevel = heartZones = NA
+  }
 
   data <- data.frame(cbind(date, time, type, duration, steps, calories, hr, distance, distanceUnit, logType, activityLevel, heartZones))
-  data <- data[data$duration >= 1, ]
+  data <- data[data$duration >= 1 & !is.na(data$duration), ]
   database <- grep(user, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
   con <- DBI::dbConnect(RSQLite::SQLite(), database)
   DBI::dbWriteTable(con, "exercise_log", data, overwrite = TRUE)

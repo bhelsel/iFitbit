@@ -80,7 +80,7 @@ authorize_fitbit_app <- function(directory, appname, key, secret = NULL, redirec
 
 refresh_fitbit_token <- function(token.pathname, key, secret = NULL, force.refresh = FALSE){
   token <- readRDS(token.pathname)
-  if(difftime(token$timestamp + token[[2]]$credentials$expires_in, Sys.time()) <= 5 | force.refresh==TRUE){
+  if(difftime(token$timestamp + token[[2]]$credentials$expires_in, Sys.time()) <= 1 | force.refresh==TRUE){
     print("Token expired. Refreshing the token now.")
     header <- httr::add_headers(Authorization=paste0("Basic ", RCurl::base64Encode(charToRaw(paste0(key, ":", secret)))))
     content_type <- httr::content_type("application/x-www-form-urlencoded")
