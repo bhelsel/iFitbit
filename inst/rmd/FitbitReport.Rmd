@@ -89,21 +89,6 @@ hr.light {
 
 library(ggplot2)
 
-
-```
-
-```{r read in all data, echo = FALSE}
-
-# database <- grep(id, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
-# con <- DBI::dbConnect(RSQLite::SQLite(), database)
-# 
-# activities <- DBI::dbReadTable(con, "activities")
-# heart <- DBI::dbReadTable(con, "heart")
-# exercise_log <- DBI::dbReadTable(con, "exercise_log")
-# device <- DBI::dbReadTable(con, "device")
-# 
-# DBI::dbDisconnect(con)
-
 ```
 
 <p> This report was generated using R and the public <a href= "https://dev.fitbit.com/build/reference/web-api/"> Fitbit Web API </a> that can be used to retrieve Fitbit user data collected by Fitbit devices. Information that can be accessed via the <a href= "https://dev.fitbit.com/build/reference/web-api/"> Fitbit Web API </a> includes data related to <a href = "https://dev.fitbit.com/build/reference/web-api/activity/">activities</a>, <a href = "https://dev.fitbit.com/build/reference/web-api/body/">body</a>, <a href = "https://dev.fitbit.com/build/reference/web-api/devices/">devices</a>, <a href = "https://dev.fitbit.com/build/reference/web-api/friends/">friends</a>, <a href = "https://dev.fitbit.com/build/reference/web-api/heartrate-timeseries/">heart rate</a>, <a href = "https://dev.fitbit.com/build/reference/web-api/nutrition/">nutrition</a>, <a href = "https://dev.fitbit.com/build/reference/web-api/sleep/">sleep</a>, and <a href = "https://dev.fitbit.com/build/reference/web-api/user/">user</a> information. </p>
@@ -155,6 +140,7 @@ lastSynced <- as.POSIXct(device$lastSyncTime, format = "%Y-%m-%dT%H:%M:%OS", tz 
 ```{r steps and mvpa seven and twenty-eight day average, fig.width=18, fig.height=4}
 
 footprint.img <-  magick::image_read(system.file("images/footprint.jpeg", package = "iFitbit"))
+activities$date <- lubridate::as_date(activities$date)
 activities <- dplyr::mutate_if(activities, is.character, as.numeric)
 
 findActivityAverages <- function(days){
@@ -193,8 +179,6 @@ gridExtra::grid.arrange(
 ```
 
 ```{r fitbit mvpa plotly plot, fig.width=9, fig.height=5}
-
-activities$date <- lubridate::as_date(activities$date)
 
 p.steps <- activities %>%
   dplyr::mutate(Category = ifelse(steps >= mean(steps, na.rm = TRUE), "Above Mean", "Below Mean")) %>%
