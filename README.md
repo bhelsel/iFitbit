@@ -22,7 +22,11 @@ to authorize your app!
 install.packages("devtools")
 
 # Use the `install_github` function to download iFitbit from GitHub
-devtools::install_github("bhelsel/iFibit")
+# Use the build_vignettes=TRUE argument to install the iFitbit vignettes
+devtools::install_github("bhelsel/iFitbit", build_vignettes=TRUE)
+
+# Once installed the vignettes can be viewed using the vignettes function
+vignette("fitbit-application", package = "iFitbit")
 ```
 
 ## Authorizing your Fitbit app
