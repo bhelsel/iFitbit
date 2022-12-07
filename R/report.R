@@ -44,14 +44,17 @@ get_fitbit_report <- function(
   device <- DBI::dbReadTable(con, "device")
   DBI::dbDisconnect(con)
 
-  # Bind the data with the same length and add device attributes
-  data <- cbind(activities, exercise_log, heart)
-  attr(data, "device") <- device
-
   if(toHTML){
     inputRmd <- paste0(system.file(package = "iFitbit"), "/rmd/", reportName, ".Rmd")
     outputHTML <- paste0(reports_pathname, "/", user, ".html")
     rmarkdown::render(input = inputRmd, output_file = outputHTML, quiet = TRUE, ...)
+  }
+
+  # Merge the data and add device attributes
+  if(toCSV | returnData){
+    names(exercise_log)[2:ncol(exercise_log)] <- paste0("exercise_", names(exercise_log)[2:ncol(exercise_log)])
+    data <- merge(activities, merge(exercise_log, heart, by = "date", all = TRUE), by = "date", all = TRUE)
+    attr(data, "device") <- device
   }
 
   if(toCSV){
