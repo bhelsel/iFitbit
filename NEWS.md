@@ -1,3 +1,8 @@
+# iFitbit 0.1.3
+* Add a method to `get_fitbit_activities` that separates Fitbit API calls for time periods greater than 100 days.
+* Removed a merge call in `get_fitbit_heart_intraday` that didn't work for an incomplete day of heart rate data.
+* Add a start and end date argument to `get_fitbit_report` to allow filtering of the data when `toCSV` or `returnData` is TRUE
+
 # iFitbit 0.1.2
 
 * Added distance, log type, activity level, and heart zones to exercise log

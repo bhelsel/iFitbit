@@ -8,6 +8,8 @@
 #' @param study_name A customized study name for the iFitbit report, Default: 'study'
 #' @param report_author A customized report author for the iFitbit report, Default: 'iFitbit'
 #' @param reportName PARAM_DESCRIPTION, Default: 'FitbitReport'
+#' @param start.date Add a start date to allow filtering of data when returning the data or writing it to a CSV
+#' @param end.date Add an end date to allow filtering of data when returning the data or writing it to a CSV
 #' @param ... Additional arguments passed to \code{\link[data.table]{fwrite}} or \code{\link[rmarkdown]{render}}
 #' @return Returns data set or generates a HTML or CSV file
 #' @details Generates an HTML report, returns data, or writes to a CSV file
@@ -28,7 +30,9 @@ get_fitbit_report <- function(
     reports_pathname = NULL,
     returnData = TRUE, toHTML = FALSE, toCSV = FALSE,
     study_name = "study", report_author = "iFitbit",
-    reportName = "FitbitReport", ...){
+    reportName = "FitbitReport",
+    start.date,
+    end.date, ...){
 
   # Create a directory for the report if a directory doesn't exist
   if(!dir.exists(reports_pathname)) dir.create(reports_pathname)
@@ -54,6 +58,7 @@ get_fitbit_report <- function(
   if(toCSV | returnData){
     names(exercise_log)[2:ncol(exercise_log)] <- paste0("exercise_", names(exercise_log)[2:ncol(exercise_log)])
     data <- merge(activities, merge(exercise_log, heart, by = "date", all = TRUE), by = "date", all = TRUE)
+    data %<>% dplyr::filter(date >= start.date & date <= end.date)
     attr(data, "device") <- device
   }
 

@@ -58,9 +58,6 @@ get_fitbit_heart_intraday <- function(token.pathname, start.date = Sys.Date(),
   for(date in dates){
     print(paste0("Extracting Fitbit Heart Rate Intraday Data for ", user, " on ", date))
     heart.url <- paste0("https://api.fitbit.com/1/", "user/", user, "/", "activities/heart", sprintf("/date/%s/1d/%s.json", date, detail.level))
-    datetime <- seq.POSIXt(as.POSIXct(paste(date, "00:00:00"), format = "%Y-%m-%d %H:%M:%S"), as.POSIXct(paste(date, "23:59:59"), format = "%Y-%m-%d %H:%M:%S"), "min")
-    datetime <- format(datetime, "%Y-%m-%d %H:%M:%S")
-    data <- data.frame(datetime)
     heart <- jsonlite::fromJSON(httr::content(httr::GET(heart.url, token), as = "text"))
 
     # Calculate intensity by heart rate reserve: ACSM Guidelines for Exercise Testing and Prescription, 11 Edition (page 148, table 5.2)
@@ -86,7 +83,20 @@ get_fitbit_heart_intraday <- function(token.pathname, start.date = Sys.Date(),
     hrr90 <- calculateHRR(max.hr, rest.hr, 0.90)
 
     if(length(heart$`activities-heart-intraday`$dataset)!=0){
-      data <- merge(x = data, y = data.frame(datetime = paste(date, heart$`activities-heart-intraday`$dataset$time), hr.bpm = heart$`activities-heart-intraday`$dataset$value), by = "datetime", all.x = TRUE)
+
+      data = data.frame(datetime = paste(date, heart$`activities-heart-intraday`$dataset$time),
+                     hr.bpm = heart$`activities-heart-intraday`$dataset$value)
+
+      data <-
+        seq(as.POSIXct(date), as.POSIXct(date)+86399, 60) %>%
+        as.character() %>%
+        setdiff(as.character(data$datetime)) %>%
+        {data.frame(
+          datetime = .,
+          hr.bpm = rep(NA, length(.))
+        )} %>%
+        rbind(data) %>%
+        .[order(.$datetime), ]
 
       # Add sleep
       if(nrow(sleep)!=0){

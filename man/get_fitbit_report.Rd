@@ -13,6 +13,8 @@ get_fitbit_report(
   study_name = "study",
   report_author = "iFitbit",
   reportName = "FitbitReport",
+  start.date,
+  end.date,
   ...
 )
 }
@@ -32,6 +34,10 @@ get_fitbit_report(
 \item{report_author}{A customized report author for the iFitbit report, Default: 'iFitbit'}
 
 \item{reportName}{PARAM_DESCRIPTION, Default: 'FitbitReport'}
+
+\item{start.date}{Add a start date to allow filtering of data when returning the data or writing it to a CSV}
+
+\item{end.date}{Add an end date to allow filtering of data when returning the data or writing it to a CSV}
 
 \item{...}{Additional arguments passed to \code{\link[data.table]{fwrite}} or \code{\link[rmarkdown]{render}}}
 }
