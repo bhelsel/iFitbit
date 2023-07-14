@@ -4,10 +4,14 @@
 \alias{get_fitbit_device}
 \title{Extract device information from the Fitbit API}
 \usage{
-get_fitbit_device(token.pathname)
+get_fitbit_device(token.pathname, toSQL = TRUE, returnDevice = FALSE)
 }
 \arguments{
 \item{token.pathname}{Path name to the Fitbit API access token.}
+
+\item{toSQL}{Write the device information to a SQL database, Default: TRUE}
+
+\item{returnDevice}{Return the device information to the users R environment, Default: FALSE}
 }
 \value{
 Writes the device information to a SQL database stored in the data folder.
