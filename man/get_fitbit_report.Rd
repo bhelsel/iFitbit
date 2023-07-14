@@ -9,7 +9,7 @@ get_fitbit_report(
   reports_pathname = NULL,
   returnData = TRUE,
   toHTML = FALSE,
-  toCSV = FALSE,
+  toXLSX = FALSE,
   study_name = "study",
   report_author = "iFitbit",
   reportName = "FitbitReport",
@@ -21,13 +21,13 @@ get_fitbit_report(
 \arguments{
 \item{database_pathname}{Full pathname to the SQL database}
 
-\item{reports_pathname}{Full pathname to the location that the HTML or CSV file should be stored, Default: NULL}
+\item{reports_pathname}{Full pathname to the location that the HTML or XLSX file should be stored, Default: NULL}
 
 \item{returnData}{Returns the combined data set, Default: TRUE}
 
 \item{toHTML}{Renders a Rmarkdown report to HTML, Default: FALSE}
 
-\item{toCSV}{Writes the full data set to a CSV file, Default: FALSE}
+\item{toXLSX}{Writes the full data set to a XLSX file, Default: FALSE}
 
 \item{study_name}{A customized study name for the iFitbit report, Default: 'study'}
 
@@ -35,20 +35,20 @@ get_fitbit_report(
 
 \item{reportName}{PARAM_DESCRIPTION, Default: 'FitbitReport'}
 
-\item{start.date}{Add a start date to allow filtering of data when returning the data or writing it to a CSV}
+\item{start.date}{Add a start date to allow filtering of data when returning the data or writing it to a XLSX}
 
-\item{end.date}{Add an end date to allow filtering of data when returning the data or writing it to a CSV}
+\item{end.date}{Add an end date to allow filtering of data when returning the data or writing it to a XLSX}
 
-\item{...}{Additional arguments passed to \code{\link[data.table]{fwrite}} or \code{\link[rmarkdown]{render}}}
+\item{...}{Additional arguments passed to \code{\link[openxlsx]{saveWorkbook}} or \code{\link[rmarkdown]{render}}}
 }
 \value{
-Returns data set or generates a HTML or CSV file
+Returns data set or generates a HTML or XLSX file
 }
 \description{
-Generates an HTML report, returns data, or writes to a CSV file
+Generates an HTML report, returns data, or writes to a XLSX file
 }
 \details{
-Generates an HTML report, returns data, or writes to a CSV file
+Generates an HTML report, returns data, or writes to a XLSX file
 }
 \seealso{
 \code{\link[DBI]{dbConnect}}, \code{\link[DBI]{dbReadTable}}, \code{\link[DBI]{dbDisconnect}}
