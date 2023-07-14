@@ -1,7 +1,7 @@
 Package: iFitbit
 Type: Package
 Title: Extract Data from the Fitbit API
-Version: 0.1.2
+Version: 0.1.4
 Author: Brian Helsel
 Maintainer: Brian Helsel <bhelsel80@gmail.com>
 Description: This R package extracts activity, sleep, device, and profile data
