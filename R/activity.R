@@ -1,3 +1,7 @@
+# Copyright © 2022 University of Kansas. All rights reserved.
+#
+# Creative Commons Attribution NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+
 #' @title Extract Activities from the Fitbit API
 #' @description Extract calories, distance, elevation, physical activity, and steps from the Fitbit API.
 #' @param token.pathname Path name to the Fitbit API access token.
@@ -153,15 +157,14 @@ get_fitbit_exercise_log <- function(token.pathname, limit = 25){
   if(length(activities[[1]]) != 0){
     date <- format(as.POSIXct(activities[[1]]$startTime, format = "%Y-%m-%dT%H:%M:%OS"), "%Y-%m-%d")
     time <- format(as.POSIXct(activities[[1]]$startTime, format = "%Y-%m-%dT%H:%M:%OS"), "%H:%M:%OS")
-    type <- activities[[1]]$activityName
-    duration <- round(activities[[1]]$activeDuration/60000, 2)
-    steps <- activities[[1]]$steps
-    calories <- activities[[1]]$calories
-
-    hr <- ifelse(!is.null(activities[[1]]$averageHeartRate), activities[[1]]$averageHeartRate, NA)
-    distance <- ifelse(!is.null(activities[[1]]$distance), activities[[1]]$distance, NA)
-    distanceUnit <- ifelse(!is.null(activities[[1]]$distanceUnit), activities[[1]]$distanceUnit, NA)
-    logType <- activities[[1]]$logType
+    type <- if(!is.null(activities[[1]]$activityName)) activities[[1]]$activityName else NA
+    duration <- if(!is.null(activities[[1]]$activeDuration)) round(activities[[1]]$activeDuration/60000, 2) else NA
+    steps <- if(!is.null(activities[[1]]$steps)) activities[[1]]$steps else NA
+    calories <- if(!is.null(activities[[1]]$calories)) activities[[1]]$calories else NA
+    hr <- if(!is.null(activities[[1]]$averageHeartRate)) activities[[1]]$averageHeartRate else NA
+    distance <- if(!is.null(activities[[1]]$distance)) activities[[1]]$distance else NA
+    distanceUnit <- if(!is.null(activities[[1]]$distanceUnit)) activities[[1]]$distanceUnit else NA
+    logType <- if(!is.null(activities[[1]]$logType)) activities[[1]]$logType else NA
 
     if(!is.null(activities[[1]]$activityLevel)){
       activityLevel <-
