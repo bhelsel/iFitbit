@@ -1,3 +1,7 @@
+# Copyright © 2022 University of Kansas. All rights reserved.
+#
+# Creative Commons Attribution NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+
 #' @title Extract Profile from the Fitbit API
 #' @description Extract profile information from the Fitbit API
 #' @param token.pathname Path name to the Fitbit API access token.

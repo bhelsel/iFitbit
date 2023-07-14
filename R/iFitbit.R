@@ -1,3 +1,7 @@
+# Copyright © 2022 University of Kansas. All rights reserved.
+#
+# Creative Commons Attribution NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+
 #' @title iFitbit: R Package for Extracting Data from the Fitbit API and Generating Interactive Reports
 #'
 #' @description This R Package extracts data from the Fitbit API and generates

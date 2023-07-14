@@ -1,4 +1,6 @@
-# Authorize App and Retrieve Access and Refresh Tokens -----------------------------------------------------------
+# Copyright © 2022 University of Kansas. All rights reserved.
+#
+# Creative Commons Attribution NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
 
 #' @title Authorize app for Fitbit API use
 #' @description Use your Fitbit key and secret to authorize your app for Fitbit API use
@@ -58,8 +60,6 @@ authorize_fitbit_app <- function(directory, appname, key, secret = NULL, redirec
 
   return(token)
 }
-
-# Refresh Token -----------------------------------------------------------
 
 #' @title Refresh Fitbit API Token
 #' @description Refresh the Fitbit API Token after it expires to access Fitbit API

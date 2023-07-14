@@ -1,3 +1,7 @@
+# Copyright © 2022 University of Kansas. All rights reserved.
+#
+# Creative Commons Attribution NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+
 #' @title Extract Sleep from the Fitbit API
 #' @description Extract sleep outcomes including duration, efficiency, time
 #'     asleep, time awake, minutes to fall asleep, and time in bed.
