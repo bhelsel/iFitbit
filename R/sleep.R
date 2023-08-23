@@ -8,8 +8,8 @@
 #' @param token.pathname Path name to the Fitbit API access token.
 #' @param start.date The start date specified in the format YYYY-MM-DD or today, Default: Sys.Date()
 #' @param end.date The end date specified in the format YYYY-MM-DD or today, Default: Sys.Date()
-#' @param toSQL Writes the activities to a SQL database stored in the data folder, Default: TRUE
-#' @param returnData Returns the sleep data, Default: FALSE
+#' @param returnData Return the data to the user's R environment, Default: TRUE
+#' @param toSQL Write the data to a SQL database, Default: FALSE
 #' @return Output is either written to a SQL database or returned as a dataframe
 #' @details Extract sleep outcomes including duration, efficiency, time
 #'     asleep, time awake, minutes to fall asleep, and time in bed.
@@ -22,7 +22,9 @@
 #' @rdname get_fitbit_sleep
 #' @export
 
-get_fitbit_sleep <- function(token.pathname, start.date = Sys.Date(), end.date = Sys.Date(), toSQL = TRUE, returnData = FALSE){
+get_fitbit_sleep <- function(token.pathname, start.date = Sys.Date(),
+                             end.date = Sys.Date(), returnData = TRUE, toSQL = FALSE){
+
   directory <- dirname(dirname(token.pathname))
   token <- readRDS(token.pathname)
   token <- token[[2]]

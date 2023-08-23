@@ -8,7 +8,9 @@ get_fitbit_activities(
   token.pathname,
   resource = "All Resources",
   start.date = Sys.Date(),
-  end.date = Sys.Date()
+  end.date = Sys.Date(),
+  returnData = TRUE,
+  toSQL = FALSE
 )
 }
 \arguments{
@@ -19,6 +21,10 @@ get_fitbit_activities(
 \item{start.date}{The start date specified in the format YYYY-MM-DD or today, Default: Sys.Date()}
 
 \item{end.date}{The end date specified in the format YYYY-MM-DD or today, Default: Sys.Date()}
+
+\item{returnData}{Return the data to the user's R environment, Default: TRUE}
+
+\item{toSQL}{Write the data to a SQL database, Default: FALSE}
 }
 \value{
 Writes the activities to a SQL database stored in the data folder.

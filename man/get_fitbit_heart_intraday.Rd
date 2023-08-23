@@ -8,7 +8,9 @@ get_fitbit_heart_intraday(
   token.pathname,
   start.date = Sys.Date(),
   end.date = Sys.Date(),
-  detail.level = "1min"
+  detail.level = "1min",
+  returnData = TRUE,
+  toSQL = FALSE
 )
 }
 \arguments{
@@ -19,6 +21,10 @@ get_fitbit_heart_intraday(
 \item{end.date}{The end date specified in the format YYYY-MM-DD or today, Default: Sys.Date()}
 
 \item{detail.level}{Detail level of the data points that should be included. The detail level can be '1sec', '1min', '5min', or '15min', Default: '1min'}
+
+\item{returnData}{Return the data to the user's R environment, Default: TRUE}
+
+\item{toSQL}{Write the data to a SQL database, Default: FALSE}
 }
 \value{
 A measure of day-level non-wear, sleep, sedentary time, and physical activity

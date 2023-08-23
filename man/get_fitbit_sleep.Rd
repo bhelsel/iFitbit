@@ -8,8 +8,8 @@ get_fitbit_sleep(
   token.pathname,
   start.date = Sys.Date(),
   end.date = Sys.Date(),
-  toSQL = TRUE,
-  returnData = FALSE
+  returnData = TRUE,
+  toSQL = FALSE
 )
 }
 \arguments{
@@ -19,9 +19,9 @@ get_fitbit_sleep(
 
 \item{end.date}{The end date specified in the format YYYY-MM-DD or today, Default: Sys.Date()}
 
-\item{toSQL}{Writes the activities to a SQL database stored in the data folder, Default: TRUE}
+\item{returnData}{Return the data to the user's R environment, Default: TRUE}
 
-\item{returnData}{Returns the sleep data, Default: FALSE}
+\item{toSQL}{Write the data to a SQL database, Default: FALSE}
 }
 \value{
 Output is either written to a SQL database or returned as a dataframe

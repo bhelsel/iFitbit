@@ -4,10 +4,14 @@
 \alias{get_fitbit_profile}
 \title{Extract Profile from the Fitbit API}
 \usage{
-get_fitbit_profile(token.pathname)
+get_fitbit_profile(token.pathname, returnData = TRUE, toSQL = FALSE)
 }
 \arguments{
 \item{token.pathname}{Path name to the Fitbit API access token.}
+
+\item{returnData}{Return the data to the user's R environment, Default: TRUE}
+
+\item{toSQL}{Write the data to a SQL database, Default: FALSE}
 }
 \value{
 Returns the Fitbit Profile of the user
