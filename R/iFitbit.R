@@ -34,14 +34,17 @@
 #' @importFrom DBI dbConnect dbWriteTable dbReadTable dbExistsTable dbRemoveTable dbDisconnect
 #' @importFrom RSQLite SQLite
 #' @importFrom RCurl base64Encode
-#' @importFrom utils modifyList tail
+#' @importFrom utils modifyList tail menu
 #' @importFrom rmarkdown render
-#' @importFrom dplyr distinct case_when summarise_at select desc mutate_if top_n mutate arrange rename
+#' @importFrom dplyr distinct case_when summarise_at select desc mutate_if top_n mutate arrange rename bind_cols if_else summarise_all
 #' @importFrom magick image_read
 #' @importFrom reactable colDef colGroup reactable reactableTheme
 #' @importFrom purrr as_vector
-#' @importFrom tidyr pivot_longer
+#' @importFrom tidyr pivot_longer complete
 #' @importFrom plotly ggplotly subplot
+#' @importFrom plyr rbind.fill
 #' @importFrom gridExtra grid.arrange
 #' @importFrom graphics layout
+#' @importFrom glue glue glue_collapse
+#' @importFrom rlang inform
 NULL

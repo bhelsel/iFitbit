@@ -47,10 +47,11 @@ get_fitbit_report <- function(
 
   # Open the SQL database connection and read in the data
   con <- DBI::dbConnect(RSQLite::SQLite(), database_pathname)
-  activities <- DBI::dbReadTable(con, "activities")
-  exercise_log <- DBI::dbReadTable(con, "exercise_log")
-  heart <- DBI::dbReadTable(con, "heart")
-  device <- DBI::dbReadTable(con, "device")
+  table_names <- DBI::dbListTables(con)
+  activities <- if("activities" %in% table_names) DBI::dbReadTable(con, "activities")
+  exercise_log <- if("exercise_log" %in% table_names) DBI::dbReadTable(con, "exercise_log")
+  heart <- if("heart" %in% table_names) DBI::dbReadTable(con, "heart")
+  device <- if("device" %in% table_names) DBI::dbReadTable(con, "device")
   DBI::dbDisconnect(con)
 
   if(toHTML){

@@ -23,7 +23,10 @@ Imports:
     reactable,
     tidyr,
     data.table,
-    openxlsx
+    openxlsx,
+    plyr,
+    glue,
+    rlang
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true

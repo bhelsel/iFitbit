@@ -8,9 +8,18 @@ get_fitbit_heart_intraday(
   token.pathname,
   start.date = Sys.Date(),
   end.date = Sys.Date(),
+  force_start_date = FALSE,
+  age = NULL,
+  max_hr_formula = "220 - age",
+  heart_intensity = NULL,
+  heart_intensity_labels = NULL,
+  heart_rate_method = 1,
+  resting_heart_rate = NULL,
   detail.level = "1min",
+  returnRawData = FALSE,
   returnData = TRUE,
-  toSQL = FALSE
+  toSQL = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -20,11 +29,35 @@ get_fitbit_heart_intraday(
 
 \item{end.date}{The end date specified in the format YYYY-MM-DD or today, Default: Sys.Date()}
 
-\item{detail.level}{Detail level of the data points that should be included. The detail level can be '1sec', '1min', '5min', or '15min', Default: '1min'}
+\item{force_start_date}{Force the start.date to be used, Default: FALSE}
 
-\item{returnData}{Return the data to the user's R environment, Default: TRUE}
+\item{age}{Age of the participant (extracts from the Fitbit user's profile if NULL), Default: NULL}
 
-\item{toSQL}{Write the data to a SQL database, Default: FALSE}
+\item{max_hr_formula}{An age-based formula to use to calculate maximal heart rate, Default: '220 - age'}
+
+\item{heart_intensity}{Heart rate percentages expressed as decimal points to use when calculating
+intensity minutes (uses ACSM as default if NULL), Default: NULL}
+
+\item{heart_intensity_labels}{Labels to go with the `heart_intensity` percentages (uses ACSM default
+of sedentary, very light, light, moderate, vigorous, and near maximal if NULL), Default: NULL}
+
+\item{heart_rate_method}{A numeric value of 1, 2, or 3 to specify the approach to calculating heart
+rate intensities (see details for more information), Default: 1}
+
+\item{resting_heart_rate}{A constant resting heart rate to use with `heart_rate_method` = 2 if it
+is a measure collected by the study, Default: NULL}
+
+\item{detail.level}{Detail level of the data points that should be included.
+The detail level can be '1sec', '1min', '5min', or '15min', Default: '1min'}
+
+\item{returnRawData}{Return the time stamped heart rate data with 0 values for any missing heart
+rate data, Default: FALSE}
+
+\item{returnData}{Return a summary of the intensity minutes to the user's R environment, Default: TRUE}
+
+\item{toSQL}{Write a summary of the intensity minutes to a SQL database, Default: FALSE}
+
+\item{verbose}{Print the progress of the Fitbit API heart rate data extraction and calculation of intensity minutes, Default: FALSE}
 }
 \value{
 A measure of day-level non-wear, sleep, sedentary time, and physical activity
@@ -33,13 +66,21 @@ A measure of day-level non-wear, sleep, sedentary time, and physical activity
 Retreives a continuous measure of heart rate from the Fitbit API
 }
 \details{
-Retreives a continuous measure of heart rate from the Fitbit API
+This function retrieves a continuous measure of heart rate from the Fitbit API. The user has access to a variety of
+ arguments within this function to customize how intensity minutes are calculated For example, a user can use heart rate reserve
+ or maximal heart rate percentages from ACSM by changing the heart_rate_method to (1) heart rate reserve using a resting heart rate
+ value from the Fitbit API for that day (or the last stored resting heart rate value if there is not one available for that day),
+ (2) heart rate reserve by providing a resting heart rate in the `resting_heart_rate` argument, or (3) maximal heart rate. The user
+ can also change how the max heart rate is calculated by specifying an age-based formula to use in the `max_hr_formula` argument.
+ By default, the ACSM intensities for heart rate reserve or percent of maximal heart rate are used (ACSM Guidelines for Exercise Testing
+ and Prescription, 11th Edition, page 148, table 5.2).
 }
 \seealso{
 \code{\link[DBI]{dbConnect}}, \code{\link[DBI]{dbExistsTable}}, \code{\link[DBI]{dbReadTable}}, \code{\link[DBI]{dbWriteTable}}, \code{\link[DBI]{dbDisconnect}}
  \code{\link[RSQLite]{SQLite}}
- \code{\link[dplyr]{distinct}}, \code{\link[dplyr]{case_when}}, \code{\link[dplyr]{summarise_all}}, \code{\link[dplyr]{select}}
- \code{\link[utils]{head}}
  \code{\link[jsonlite]{toJSON, fromJSON}}
  \code{\link[httr]{content}}, \code{\link[httr]{GET}}
+ \code{\link[tidyr]{complete}}
+ \code{\link[dplyr]{bind_cols}}, \code{\link[dplyr]{if_else}}, \code{\link[dplyr]{summarise_all}}
+ \code{\link[plyr]{rbind.fill}}
 }

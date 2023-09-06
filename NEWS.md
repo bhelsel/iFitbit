@@ -1,3 +1,8 @@
+# iFitbit 0.1.5
+* Significant improvements to the `fitbit_heart_intraday` function to make it more flexible for the end user.
+* Add helper functions that display max heart rate equations or default ACSM intensities
+* Add database functions that make it easier to manage the SQL Fitbit databases
+
 # iFitbit 0.1.4
 * Update license to include University of Kansas copyright information.
 * Update `get_fitbit_exercise_log` function to check for NULL values.
