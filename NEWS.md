@@ -1,3 +1,7 @@
+# iFitbit 0.1.6
+* Improve sleep classification during an intraday heart rate request
+* Add a `returnData` argument for the `get_fitbit_exercise_log` function.
+
 # iFitbit 0.1.5
 * Significant improvements to the `fitbit_heart_intraday` function to make it more flexible for the end user.
 * Add helper functions that display max heart rate equations or default ACSM intensities

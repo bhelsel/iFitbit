@@ -23,7 +23,3 @@ get_fitbit_profile <- function(token.pathname, returnData = TRUE, toSQL = FALSE)
   profile <- jsonlite::fromJSON(httr::content(httr::GET(url.profile, token), as = "text"))
   return(profile)
 }
-
-# magick::image_read displays images
-# profile <- get.fitbit.profile(token)
-# names.profile <- names(profile$user)

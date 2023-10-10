@@ -17,7 +17,6 @@ Imports:
     rmarkdown,
     ggplot2,
     gridExtra,
-    magick,
     plotly,
     purrr,
     reactable,
@@ -26,7 +25,8 @@ Imports:
     openxlsx,
     plyr,
     glue,
-    rlang
+    rlang,
+    lubridate
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true

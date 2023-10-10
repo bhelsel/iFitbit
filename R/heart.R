@@ -101,8 +101,9 @@ get_fitbit_heart_intraday <- function(token.pathname, start.date = Sys.Date(), e
   }
 
   # Loop through the days to pull values from the heart rate intraday data and calculate intensities
-  for(date in as.character(seq(start.date, end.date, by = "day"))){
-    if(verbose) print(sprintf("Extracting Fitbit Heart Rate Intraday Data for %s on %s", user, format(as.Date(date), "%B %d, %Y")))
+  for(date in as.character(seq.Date(as.Date(start.date), as.Date(end.date), by = "day"))){
+    date <- as.Date(date)
+    if(verbose) print(sprintf("Extracting Fitbit Heart Rate Intraday Data for %s on %s", user, format(date, "%B %d, %Y")))
     heart.url <- sprintf("https://api.fitbit.com/1/user/%s/activities/heart/date/%s/1d/%s.json", user, date, detail.level)
     heart <- jsonlite::fromJSON(httr::content(httr::GET(heart.url, token), as = "text"))
     if(length(heart$`activities-heart-intraday`$dataset) == 0) break
@@ -150,7 +151,7 @@ get_fitbit_heart_intraday <- function(token.pathname, start.date = Sys.Date(), e
     if(max(heart_data$hr) > max.hr) max.hr <- max(heart_data$hr)
 
     if(length(heart_data)!=0){
-      heart_data$time <- as.POSIXct(paste(date, heart_data$time), tz = "UTC")
+      heart_data$time <- as.POSIXct(paste(date, heart_data$time)) %>% lubridate::force_tz("UTC")
       start_time <- as.POSIXct(paste(date, "00:00:00"), tz = "UTC")
       stop_time <- as.POSIXct(paste(date, "23:59:59"), tz = "UTC")
       heart_data %<>% tidyr::complete(time = seq.POSIXt(start_time, stop_time, by = "min"), fill = list(hr = 0))
@@ -160,18 +161,24 @@ get_fitbit_heart_intraday <- function(token.pathname, start.date = Sys.Date(), e
 
       # Add sleep
       if(nrow(sleep)!=0){
-        SleepStartTime <- as.POSIXct(sleep[sleep$dateOfSleep==date, c("startTime")], format = "%Y-%m-%dT%H:%M:%OS")
-        SleepEndTime <- as.POSIXct(sleep[sleep$dateOfSleep==date, c("endTime")], format = "%Y-%m-%dT%H:%M:%OS")
-        heart_data$sleep <- 0
-        if(length(SleepStartTime)!=0){
-          for(i in 1:length(SleepStartTime)){
-            if(format(SleepStartTime[i], "%Y-%m-%d") != date){
-              SleepStartTime[i] == as.POSIXct(date, format = "%Y-%m-%d")
-            }
-            heart_data$sleep <- ifelse(heart_data$time>=SleepStartTime[i] & heart_data$time<=SleepEndTime[i], 1, heart_data$sleep)
+        SleepEndTime <- as.POSIXct(sleep[which(sleep$endTime==date), c("endTime")], format = "%Y-%m-%dT%H:%M:%OS") %>% lubridate::force_tz("UTC")
+        if(any(sleep$startTime == date)){
+          SleepStartTime <- as.POSIXct(sleep[which(sleep$startTime==date), c("startTime")], format = "%Y-%m-%dT%H:%M:%OS") %>% lubridate::force_tz("UTC")
+          heart_data$sleep <- ifelse(heart_data$time >= SleepStartTime | heart_data$time <= SleepEndTime, 1, 0)
+        } else{
+          if(verbose){
+            cat(
+              sprintf(
+                "Could not determine a sleep start time for %s.",
+                format(as.Date(date), "%B %d, %Y")
+              ),
+              "\nThe program will not return any data for this date.\nTry extending the end.date if you need this data"
+            )
           }
+          break
         }
       }
+
       if(nrow(sleep)==0){
         heart_data$sleep <- 0
       }

@@ -101,7 +101,15 @@ get_fitbit_exercise_log <- function(token.pathname, limit = 25,
   data <- data.frame(cbind(date, time, type, duration, steps, calories, hr, distance, distanceUnit, logType, activityLevel, heartZones))
   data <- data[data$duration >= 1 & !is.na(data$duration), ]
   database <- grep(user, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
-  con <- DBI::dbConnect(RSQLite::SQLite(), database)
-  DBI::dbWriteTable(con, "exercise_log", data, overwrite = TRUE)
-  DBI::dbDisconnect(con)
+
+  if(toSQL){
+    con <- DBI::dbConnect(RSQLite::SQLite(), database)
+    DBI::dbWriteTable(con, "exercise_log", data, overwrite = TRUE)
+    DBI::dbDisconnect(con)
+  }
+
+  if(returnData){
+    return(data)
+  }
+
 }
