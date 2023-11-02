@@ -25,14 +25,14 @@
 #' @importFrom RSQLite SQLite
 #' @importFrom dplyr bind_rows
 
-get_fitbit_exercise_log <- function(token.pathname, limit = 25,
-                                    returnData = TRUE, toSQL = FALSE){
+get_fitbit_exercise_log <- function(token.pathname, before.date = Sys.Date(),
+                                    limit = 25, returnData = TRUE, toSQL = FALSE){
 
   directory <- dirname(dirname(token.pathname))
   token <- readRDS(token.pathname)
   token <- token[[2]]
   user <- token$credentials$user_id
-  activity.url <- paste0("https://api.fitbit.com/1/", "user/", user, "/", sprintf("activities/list.json?beforeDate=%s&sort=desc&offset=0&limit=%s", Sys.Date(), limit))
+  activity.url <- paste0("https://api.fitbit.com/1/", "user/", user, "/", sprintf("activities/list.json?beforeDate=%s&sort=desc&offset=0&limit=%s", before.date, limit))
   activities <- jsonlite::fromJSON(httr::content(httr::GET(activity.url, token), as = "text"))
 
   if(length(activities[[1]]) != 0){
