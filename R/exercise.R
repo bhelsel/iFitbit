@@ -6,6 +6,7 @@
 #' @description Extract date, time, type, duration, steps, calories, and heart
 #'     rate in exercise sessions from the Fitbit API.
 #' @param token.pathname Path name to the Fitbit API access token.
+#' @param before.date The date in the format Y-m-d to limit the extraction of the exercise records.
 #' @param limit Number of exercise records to extract from the Fitbit API, Default: 25
 #' @param returnData Return the data to the user's R environment, Default: TRUE
 #' @param toSQL Write the data to a SQL database, Default: FALSE

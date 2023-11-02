@@ -6,6 +6,7 @@
 \usage{
 get_fitbit_exercise_log(
   token.pathname,
+  before.date = Sys.Date(),
   limit = 25,
   returnData = TRUE,
   toSQL = FALSE
@@ -13,6 +14,8 @@ get_fitbit_exercise_log(
 }
 \arguments{
 \item{token.pathname}{Path name to the Fitbit API access token.}
+
+\item{before.date}{The date in the format Y-m-d to limit the extraction of the exercise records.}
 
 \item{limit}{Number of exercise records to extract from the Fitbit API, Default: 25}
 
