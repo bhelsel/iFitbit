@@ -85,3 +85,39 @@
   }
   return(NULL)
 }
+
+
+#' @title .readTables
+#' @description Read the table(s) within the SQL databases
+#' @param directory A directory where the data folder containing the SQL databases is stored.
+#' @param database Path name to the SQL database containing the extracted Fitbit data.
+#' @return Reads a specific table(s) within the SQL databases and returns the table(s) as a data set.
+#' @details Read the table(s) within the SQL databases
+#' @noRd
+#' @keywords internal
+
+.readTables <- function(directory = NULL, database = NULL, tableName = NULL){
+
+  if(!is.null(directory)){
+    files <- list.files(file.path(directory, "data"), full.names = TRUE)
+  }
+
+  if(!is.null(database) & is.null(directory)){
+    files <- database
+  }
+
+  main_data <- data.frame()
+
+  for(file in files){
+    user_id <- strsplit(basename(file), "[.]")[[1]][1]
+    con <- DBI::dbConnect(RSQLite::SQLite(), file)
+    if(tableName %in% DBI::dbListTables(con)){
+      data <- DBI::dbReadTable(con, tableName)
+      main_data <- plyr::rbind.fill(main_data, data.frame(user_id, data))
+    }
+    DBI::dbDisconnect(con)
+  }
+  return(main_data)
+}
+
+

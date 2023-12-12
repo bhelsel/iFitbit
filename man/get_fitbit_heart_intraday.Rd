@@ -8,16 +8,16 @@ get_fitbit_heart_intraday(
   token.pathname,
   start.date = Sys.Date(),
   end.date = Sys.Date(),
-  force_start_date = FALSE,
+  detail.level = "1min",
   age = NULL,
   max_hr_formula = "220 - age",
-  heart_intensity = NULL,
-  heart_intensity_labels = NULL,
+  intensity = NULL,
+  intensity_labels = NULL,
   heart_rate_method = 1,
-  resting_heart_rate = NULL,
-  detail.level = "1min",
-  returnRawData = FALSE,
+  rest.hr = NULL,
+  do.parallel = FALSE,
   returnData = TRUE,
+  returnRawData = FALSE,
   toSQL = FALSE,
   verbose = FALSE
 )
@@ -29,31 +29,31 @@ get_fitbit_heart_intraday(
 
 \item{end.date}{The end date specified in the format YYYY-MM-DD or today, Default: Sys.Date()}
 
-\item{force_start_date}{Force the start.date to be used, Default: FALSE}
+\item{detail.level}{Detail level of the data points that should be included.
+The detail level can be '1sec', '1min', '5min', or '15min', Default: '1min'}
 
 \item{age}{Age of the participant (extracts from the Fitbit user's profile if NULL), Default: NULL}
 
 \item{max_hr_formula}{An age-based formula to use to calculate maximal heart rate, Default: '220 - age'}
 
-\item{heart_intensity}{Heart rate percentages expressed as decimal points to use when calculating
+\item{intensity}{Heart rate percentages expressed as decimal points to use when calculating
 intensity minutes (uses ACSM as default if NULL), Default: NULL}
 
-\item{heart_intensity_labels}{Labels to go with the `heart_intensity` percentages (uses ACSM default
+\item{intensity_labels}{Labels to go with the `intensity` percentages (uses ACSM default
 of sedentary, very light, light, moderate, vigorous, and near maximal if NULL), Default: NULL}
 
 \item{heart_rate_method}{A numeric value of 1, 2, or 3 to specify the approach to calculating heart
 rate intensities (see details for more information), Default: 1}
 
-\item{resting_heart_rate}{A constant resting heart rate to use with `heart_rate_method` = 2 if it
+\item{rest.hr}{A constant resting heart rate to use with `heart_rate_method` = 2 if it
 is a measure collected by the study, Default: NULL}
 
-\item{detail.level}{Detail level of the data points that should be included.
-The detail level can be '1sec', '1min', '5min', or '15min', Default: '1min'}
+\item{do.parallel}{Process dates in parallel to speed up extraction of the heart rate data}
+
+\item{returnData}{Return a summary of the intensity minutes to the user's R environment, Default: TRUE}
 
 \item{returnRawData}{Return the time stamped heart rate data with 0 values for any missing heart
 rate data, Default: FALSE}
-
-\item{returnData}{Return a summary of the intensity minutes to the user's R environment, Default: TRUE}
 
 \item{toSQL}{Write a summary of the intensity minutes to a SQL database, Default: FALSE}
 

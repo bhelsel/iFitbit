@@ -72,3 +72,25 @@
              \n")
 }
 
+
+#' @title .extract_token
+#' @description Extracts directory, token information, and Fitbit user id
+#' @param token.pathname Full pathname to the location of the access token
+#' @return A list containing the directory, token information, and Fitbit user id
+#' @details Extracts directory, token information, and Fitbit user id
+#' @noRd
+#' @keywords internal
+
+.extract_token <- function(token.pathname){
+  directory <- dirname(dirname(token.pathname))
+  token <- readRDS(token.pathname)
+  token <- token[[2]]
+  user <- token$credentials$user_id
+  l <- list(directory, token, user)
+  l <- stats::setNames(l, c("directory", "token", "user"))
+  return(l)
+}
+
+
+
+
