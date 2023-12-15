@@ -81,7 +81,7 @@ get_fitbit_heart_intraday <- function(token.pathname, start.date = Sys.Date(),
                                             intensity_labels, heart_rate_method, rest.hr, verbose)
 
   if(toSQL){
-    database <- grep(user, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
+    database <- grep(tkn$user, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
     con <- DBI::dbConnect(RSQLite::SQLite(), database)
     DBI::dbWriteTable(con, "heart", heart_data, overwrite = TRUE)
     DBI::dbDisconnect(con)
