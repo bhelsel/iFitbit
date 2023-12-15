@@ -1,3 +1,7 @@
+# iFitbit 0.1.7
+* Add `.readTables` database function.
+* Add parallel processing to the `fitbit_heart_intraday` function.
+
 # iFitbit 0.1.6
 * Improve sleep classification during an intraday heart rate request
 * Add a `returnData` argument for the `get_fitbit_exercise_log` function.
