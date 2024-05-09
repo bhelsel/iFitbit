@@ -19,14 +19,13 @@
 
 get_fitbit_device <- function(token.pathname, returnData = TRUE, toSQL = FALSE){
 
-  directory <- dirname(dirname(token.pathname))
+  tkn <- .extract_token(token.pathname)
+
   devicesData <- data.frame(matrix(ncol = 5, nrow = 0))
   colnames(devicesData) <- c("user", "deviceVersion", "lastSyncTime", "battery", "batteryLevel")
-  token <- readRDS(token.pathname)
-  token <- token[[2]]
-  user <- token$credentials$user_id
-  url_devices <- paste0("https://api.fitbit.com/1/", "user/", user, "/", "devices.json")
-  device <- jsonlite::fromJSON(httr::content(httr::GET(url_devices, token), as = "text"))
+  url_devices <- paste0("https://api.fitbit.com/1/", "user/", tkn$user, "/", "devices.json")
+  device <- jsonlite::fromJSON(httr::content(httr::GET(url_devices, tkn$token), as = "text"))
+  device <- device[device$deviceVersion != "MobileTrack", ]
 
   if(length(device) != 0){
     data <- data.frame(cbind(deviceVersion=device$deviceVersion, lastSyncTime=device$lastSyncTime, battery=device$battery, batteryLevel=device$batteryLevel, type=device$type))
@@ -35,7 +34,7 @@ get_fitbit_device <- function(token.pathname, returnData = TRUE, toSQL = FALSE){
   }
 
   if(toSQL){
-    database <- grep(user, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
+    database <- .checkDatabase(tkn$directory, tkn$user)
     con <- DBI::dbConnect(RSQLite::SQLite(), database)
     DBI::dbWriteTable(con, "device", data, overwrite = TRUE)
     DBI::dbDisconnect(con)

@@ -121,3 +121,12 @@
 }
 
 
+.checkDatabase <- function(directory, user){
+  if(!dir.exists(file.path(directory, "data"))) dir.create(file.path(directory, "data"))
+  user_database <- file.path(directory, "data", sprintf("%s.db", user))
+  if(!file.exists(user_database)) {
+    con <- DBI::dbConnect(RSQLite::SQLite(), user_database)
+    DBI::dbDisconnect(con)
+  }
+  return(user_database)
+}

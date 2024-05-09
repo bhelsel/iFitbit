@@ -81,7 +81,7 @@ get_fitbit_heart_intraday <- function(token.pathname, start.date = Sys.Date(),
                                             intensity_labels, heart_rate_method, rest.hr, verbose)
 
   if(toSQL){
-    database <- grep(tkn$user, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
+    database <- .checkDatabase(directory, tkn$user)
     con <- DBI::dbConnect(RSQLite::SQLite(), database)
     DBI::dbWriteTable(con, "heart", heart_data, overwrite = TRUE)
     DBI::dbDisconnect(con)
@@ -228,7 +228,7 @@ calculate_heart_intensities <- function(heart_raw_data = NULL, sleep_data = NULL
   heart_raw_data[which(heart_raw_data$nonwear == 1), "hrr.percent"] <- NA
   heart_raw_data <- dplyr::bind_cols(cbind(dplyr::select(heart_raw_data, time:nonwear), sapply(intensity_labels, function(x) heart_raw_data[x] <- dplyr::if_else(heart_raw_data$hrr.percent == x, 1, 0, 0))))
   cols <- names(heart_raw_data)[names(heart_raw_data) %in% c("sleep", "nonwear", intensity_labels)]
-  heart_data <- heart_raw_data %>% dplyr::group_by(date = as.Date(time)) %>% dplyr::summarise_at(vars(all_of(cols)), sum, na.rm = TRUE)
+  heart_data <- heart_raw_data %>% dplyr::group_by(date = as.character(as.Date(time))) %>% dplyr::summarise_at(vars(dplyr::all_of(cols)), sum, na.rm = TRUE)
 
   # Calculate MVPA if not already provided in intensities
   if(!any(grepl("mvpa", colnames(heart_data), ignore.case = TRUE))){

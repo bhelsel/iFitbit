@@ -24,11 +24,9 @@ get_fitbit_activities <- function(token.pathname, resource = "All Resources",
                                   start.date = Sys.Date(), end.date = Sys.Date(),
                                   returnData = TRUE, toSQL = FALSE){
 
-  directory <- dirname(dirname(token.pathname))
-  token <- readRDS(token.pathname)
-  token <- token[[2]]
-  user <- token$credentials$user_id
-  url_activity <- paste0("https://api.fitbit.com/1/", "user/", user, "/", "activities/")
+  tkn <- .extract_token(token.pathname)
+
+  url_activity <- paste0("https://api.fitbit.com/1/", "user/", tkn$user, "/", "activities/")
 
   # Check to see if data is greater than 100 days
   dateDiff <- difftime(end.date, start.date)
@@ -53,70 +51,70 @@ get_fitbit_activities <- function(token.pathname, resource = "All Resources",
 
     if("activityCalories" %in% resource){
       activityCalories.url <- paste0(url_activity, "activityCalories", sprintf("/date/%s/%s.json", start.date[i], end.date[i]))
-      activityCalories <- jsonlite::fromJSON(httr::content(httr::GET(activityCalories.url, token), as = "text"))[[1]][2]
+      activityCalories <- jsonlite::fromJSON(httr::content(httr::GET(activityCalories.url, tkn$token), as = "text"))[[1]][2]
       colnames(activityCalories) <- "activityCalories"
       temp_data <- cbind(temp_data, activityCalories)
     }
 
     if("calories" %in% resource){
       calories.url <- paste0(url_activity, "calories", sprintf("/date/%s/%s.json", start.date[i], end.date[i]))
-      calories <- jsonlite::fromJSON(httr::content(httr::GET(calories.url, token), as = "text"))[[1]][2]
+      calories <- jsonlite::fromJSON(httr::content(httr::GET(calories.url, tkn$token), as = "text"))[[1]][2]
       colnames(calories) <- "calories"
       temp_data <- cbind(temp_data, calories)
     }
 
     if("distance" %in% resource){
       distance.url <- paste0(url_activity, "distance", sprintf("/date/%s/%s.json", start.date[i], end.date[i]))
-      distance <- jsonlite::fromJSON(httr::content(httr::GET(distance.url, token), as = "text"))[[1]][2]
+      distance <- jsonlite::fromJSON(httr::content(httr::GET(distance.url, tkn$token), as = "text"))[[1]][2]
       colnames(distance) <- "distance"
       temp_data <- cbind(temp_data, distance)
     }
 
     if("elevation" %in% resource){
       elevation.url <- paste0(url_activity, "elevation", sprintf("/date/%s/%s.json", start.date[i], end.date[i]))
-      elevation <- jsonlite::fromJSON(httr::content(httr::GET(elevation.url, token), as = "text"))[[1]][2]
+      elevation <- jsonlite::fromJSON(httr::content(httr::GET(elevation.url, tkn$token), as = "text"))[[1]][2]
       colnames(elevation) <- "elevation"
       temp_data <- cbind(temp_data, elevation)
     }
 
     if("floors" %in% resource){
       floors.url <- paste0(url_activity, "floors", sprintf("/date/%s/%s.json", start.date[i], end.date[i]))
-      floors <- jsonlite::fromJSON(httr::content(httr::GET(floors.url, token), as = "text"))[[1]][2]
+      floors <- jsonlite::fromJSON(httr::content(httr::GET(floors.url, tkn$token), as = "text"))[[1]][2]
       colnames(floors) <- "floors"
       temp_data <- cbind(temp_data, floors)
     }
 
     if("minutesSedentary" %in% resource){
       minutesSedentary.url <- paste0(url_activity, "minutesSedentary", sprintf("/date/%s/%s.json", start.date[i], end.date[i]))
-      minutesSedentary <- jsonlite::fromJSON(httr::content(httr::GET(minutesSedentary.url, token), as = "text"))[[1]][2]
+      minutesSedentary <- jsonlite::fromJSON(httr::content(httr::GET(minutesSedentary.url, tkn$token), as = "text"))[[1]][2]
       colnames(minutesSedentary) <- "minutesSedentary"
       temp_data <- cbind(temp_data, minutesSedentary)
     }
 
     if("minutesLightlyActive" %in% resource){
       minutesLightlyActive.url <- paste0(url_activity, "minutesLightlyActive", sprintf("/date/%s/%s.json", start.date[i], end.date[i]))
-      minutesLightlyActive <- jsonlite::fromJSON(httr::content(httr::GET(minutesLightlyActive.url, token), as = "text"))[[1]][2]
+      minutesLightlyActive <- jsonlite::fromJSON(httr::content(httr::GET(minutesLightlyActive.url, tkn$token), as = "text"))[[1]][2]
       colnames(minutesLightlyActive) <- "minutesLightlyActive"
       temp_data <- cbind(temp_data, minutesLightlyActive)
     }
 
     if("minutesFairlyActive" %in% resource){
       minutesFairlyActive.url <- paste0(url_activity, "minutesFairlyActive", sprintf("/date/%s/%s.json", start.date[i], end.date[i]))
-      minutesFairlyActive <- jsonlite::fromJSON(httr::content(httr::GET(minutesFairlyActive.url, token), as = "text"))[[1]][2]
+      minutesFairlyActive <- jsonlite::fromJSON(httr::content(httr::GET(minutesFairlyActive.url, tkn$token), as = "text"))[[1]][2]
       colnames(minutesFairlyActive) <- "minutesFairlyActive"
       temp_data <- cbind(temp_data, minutesFairlyActive)
     }
 
     if("minutesVeryActive" %in% resource){
       minutesVeryActive.url <- paste0(url_activity, "minutesVeryActive", sprintf("/date/%s/%s.json", start.date[i], end.date[i]))
-      minutesVeryActive <- jsonlite::fromJSON(httr::content(httr::GET(minutesVeryActive.url, token), as = "text"))[[1]][2]
+      minutesVeryActive <- jsonlite::fromJSON(httr::content(httr::GET(minutesVeryActive.url, tkn$token), as = "text"))[[1]][2]
       colnames(minutesVeryActive) <- "minutesVeryActive"
       temp_data <- cbind(temp_data, minutesVeryActive)
     }
 
     if("steps" %in% resource){
       steps.url <- paste0(url_activity, "steps", sprintf("/date/%s/%s.json", start.date[i], end.date[i]))
-      steps <- jsonlite::fromJSON(httr::content(httr::GET(steps.url, token), as = "text"))[[1]][2]
+      steps <- jsonlite::fromJSON(httr::content(httr::GET(steps.url, tkn$token), as = "text"))[[1]][2]
       colnames(steps) <- "steps"
       temp_data <- cbind(temp_data, steps)
     }
@@ -125,7 +123,7 @@ get_fitbit_activities <- function(token.pathname, resource = "All Resources",
   }
 
   if(toSQL){
-    database <- grep(user, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
+    database <- .checkDatabase(tkn$directory, tkn$user)
     con <- DBI::dbConnect(RSQLite::SQLite(), database)
     DBI::dbWriteTable(con, "activities", data, overwrite = TRUE)
     DBI::dbDisconnect(con)
