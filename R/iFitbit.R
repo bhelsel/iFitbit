@@ -25,7 +25,6 @@
 #'
 #' \code{\link{get_fitbit_heart_intraday}}
 #'
-#' @docType package
 #' @name iFitbit
 #' @import magrittr
 #' @import ggplot2
@@ -36,7 +35,7 @@
 #' @importFrom RCurl base64Encode
 #' @importFrom utils modifyList tail menu
 #' @importFrom rmarkdown render
-#' @importFrom dplyr distinct case_when summarise_at select desc mutate_if top_n mutate arrange rename bind_cols if_else summarise_all
+#' @importFrom dplyr all_of distinct case_when summarise_at select desc mutate_if top_n mutate arrange rename bind_cols if_else summarise_all
 #' @importFrom reactable colDef colGroup reactable reactableTheme
 #' @importFrom purrr as_vector
 #' @importFrom tidyr pivot_longer complete

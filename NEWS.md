@@ -1,6 +1,10 @@
 # iFitbit 0.1.7
 * Add `.readTables` database function.
 * Add parallel processing to the `fitbit_heart_intraday` function.
+* Changed `get_fitbit_exercise_log` to extend the limit and replace `before.date` with `after.date`
+* Added the `.extract_token` function to reduce repetitive text inside the main functions
+* Added `.checkDatabase` to create SQL database if one does not exist and `toSQL` is set to true
+* Removed cases where `get_fitbit_device` returns a MobileTrack device
 
 # iFitbit 0.1.6
 * Improve sleep classification during an intraday heart rate request
