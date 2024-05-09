@@ -6,8 +6,8 @@
 #' @description Extract date, time, type, duration, steps, calories, and heart
 #'     rate in exercise sessions from the Fitbit API.
 #' @param token.pathname Path name to the Fitbit API access token.
-#' @param before.date The date in the format Y-m-d to limit the extraction of the exercise records.
-#' @param limit Number of exercise records to extract from the Fitbit API, Default: 25
+#' @param after.date The date in the format Y-m-d to limit the extraction of the exercise records.
+#' @param limit Number of exercise records to extract from the Fitbit API (Maximum: 100), Default: 100
 #' @param returnData Return the data to the user's R environment, Default: TRUE
 #' @param toSQL Write the data to a SQL database, Default: FALSE
 #' @return Writes the exercise log to a SQL database stored in the data folder.
@@ -26,15 +26,13 @@
 #' @importFrom RSQLite SQLite
 #' @importFrom dplyr bind_rows
 
-get_fitbit_exercise_log <- function(token.pathname, before.date = Sys.Date(),
-                                    limit = 25, returnData = TRUE, toSQL = FALSE){
+get_fitbit_exercise_log <- function(token.pathname, after.date = Sys.Date(),
+                                    limit = 100, returnData = TRUE, toSQL = FALSE){
 
-  directory <- dirname(dirname(token.pathname))
-  token <- readRDS(token.pathname)
-  token <- token[[2]]
-  user <- token$credentials$user_id
-  activity.url <- paste0("https://api.fitbit.com/1/", "user/", user, "/", sprintf("activities/list.json?beforeDate=%s&sort=desc&offset=0&limit=%s", before.date, limit))
-  activities <- jsonlite::fromJSON(httr::content(httr::GET(activity.url, token), as = "text"))
+  tkn <- .extract_token(token.pathname)
+
+  activity.url <- paste0("https://api.fitbit.com/1/", "user/", tkn$user, "/", sprintf("activities/list.json?afterDate=%s&sort=desc&offset=0&limit=%s", after.date, limit))
+  activities <- jsonlite::fromJSON(httr::content(httr::GET(activity.url, tkn$token), as = "text"))
 
   if(length(activities[[1]]) != 0){
     date <- format(as.POSIXct(activities[[1]]$startTime, format = "%Y-%m-%dT%H:%M:%OS"), "%Y-%m-%d")
@@ -101,9 +99,9 @@ get_fitbit_exercise_log <- function(token.pathname, before.date = Sys.Date(),
 
   data <- data.frame(cbind(date, time, type, duration, steps, calories, hr, distance, distanceUnit, logType, activityLevel, heartZones))
   data <- data[data$duration >= 1 & !is.na(data$duration), ]
-  database <- grep(user, list.files(paste0(directory, "/data"), full.names = TRUE), value = TRUE)
 
   if(toSQL){
+    database <- .checkDatabase(tkn$directory, tkn$user)
     con <- DBI::dbConnect(RSQLite::SQLite(), database)
     DBI::dbWriteTable(con, "exercise_log", data, overwrite = TRUE)
     DBI::dbDisconnect(con)
