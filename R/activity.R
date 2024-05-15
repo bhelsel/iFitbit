@@ -10,6 +10,7 @@
 #' @param end.date The end date specified in the format YYYY-MM-DD or today, Default: Sys.Date()
 #' @param returnData Return the data to the user's R environment, Default: TRUE
 #' @param toSQL Write the data to a SQL database, Default: FALSE
+#' @param overwrite Data extraction should be continued from the most recent date in the SQL database, Default: FALSE
 #' @return Writes the activities to a SQL database stored in the data folder.
 #' @details Extract calories, distance, elevation, physical activity, and steps from the Fitbit API.
 #' @seealso
@@ -22,9 +23,13 @@
 
 get_fitbit_activities <- function(token.pathname, resource = "All Resources",
                                   start.date = Sys.Date(), end.date = Sys.Date(),
-                                  returnData = TRUE, toSQL = FALSE){
+                                  returnData = TRUE, toSQL = FALSE, overwrite = FALSE){
 
   tkn <- .extract_token(token.pathname)
+
+  start.date <- .adjustDates(token.pathname, database = "activities", overwrite, start.date, end.date)$start.date
+
+  end.date <- .adjustDates(token.pathname, database = "activities", overwrite, start.date, end.date)$end.date
 
   url_activity <- paste0("https://api.fitbit.com/1/", "user/", tkn$user, "/", "activities/")
 
@@ -125,7 +130,10 @@ get_fitbit_activities <- function(token.pathname, resource = "All Resources",
   if(toSQL){
     database <- .checkDatabase(tkn$directory, tkn$user)
     con <- DBI::dbConnect(RSQLite::SQLite(), database)
-    DBI::dbWriteTable(con, "activities", data, overwrite = TRUE)
+    if(nrow(data) != 0){
+      DBI::dbExecute(con, sprintf("DELETE FROM %s WHERE date BETWEEN '%s' AND '%s'", "activities", data$date[1], data$date[nrow(data)]))
+    }
+    DBI::dbWriteTable(con, "activities", data, overwrite = overwrite, append = !overwrite)
     DBI::dbDisconnect(con)
   }
 

@@ -9,7 +9,8 @@ get_fitbit_sleep(
   start.date = Sys.Date(),
   end.date = Sys.Date(),
   returnData = TRUE,
-  toSQL = FALSE
+  toSQL = FALSE,
+  overwrite = FALSE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ get_fitbit_sleep(
 \item{returnData}{Return the data to the user's R environment, Default: TRUE}
 
 \item{toSQL}{Write the data to a SQL database, Default: FALSE}
+
+\item{overwrite}{Data extraction should be continued from the most recent date in the SQL database, Default: FALSE}
 }
 \value{
 Output is either written to a SQL database or returned as a dataframe

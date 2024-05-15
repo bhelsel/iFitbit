@@ -92,5 +92,30 @@
 }
 
 
+#' @title .adjustHeartDates
+#' @description Adjusts the start and end date for the `get_fitbit_heart_intraday` function
+#' @param token.pathname Full pathname to the location of the access token
+#' @param database Name of the database to retrieve the last date value (Choices: activity, heart, and sleep)
+#' @param overwrite Data extraction should be continued from the most recent date in the heart SQL database
+#' @param start.date The start date specified in the format YYYY-MM-DD or today, Default: Sys.Date()
+#' @param end.date The end date specified in the format YYYY-MM-DD or today, Default: Sys.Date()
+#' @return An updated start and end date for the `get_fitbit_heart_intraday` function
+#' @details Adjusts the start and end date for the `get_fitbit_heart_intraday` function
+#' @noRd
+#' @keywords internal
+
+.adjustDates <- function(token.pathname, database, overwrite = FALSE, start.date, end.date){
+  tkn <- .extract_token(token.pathname)
+  device <- get_fitbit_device(token.pathname, returnData = TRUE)
+  lastSync <- as.POSIXct(device$lastSyncTime, format = "%Y-%m-%dT%H:%M:%OS")
+  if(end.date > lastSync) end.date <- as.Date(lastSync) - 1
+  if(!overwrite){
+    con <- DBI::dbConnect(RSQLite::SQLite(), .checkDatabase(directory, tkn$user))
+    lastDate <- tail(DBI::dbReadTable(con, database)$date, 1)
+    DBI::dbDisconnect(con)
+    if(length(lastDate) != 0) start.date <- as.Date(lastDate) - 1
+  }
+  return(list(start.date = start.date, end.date = end.date))
+}
 
 

@@ -49,6 +49,7 @@ get_fitbit_report <- function(
   con <- DBI::dbConnect(RSQLite::SQLite(), database_pathname)
   table_names <- DBI::dbListTables(con)
   activities <- if("activities" %in% table_names) DBI::dbReadTable(con, "activities")
+  sleep <- if("sleep" %in% table_names) DBI::dbReadTable(con, "sleep")
   exercise_log <- if("exercise_log" %in% table_names) DBI::dbReadTable(con, "exercise_log")
   heart <- if("heart" %in% table_names) DBI::dbReadTable(con, "heart")
   device <- if("device" %in% table_names) DBI::dbReadTable(con, "device")
@@ -63,14 +64,15 @@ get_fitbit_report <- function(
   # Create a list from the data
   if(toXLSX | returnData){
     names(exercise_log)[2:ncol(exercise_log)] <- paste0("exercise_", names(exercise_log)[2:ncol(exercise_log)])
-    data <- list(device = device, activities = activities, exercise_log = exercise_log, heart = heart)
+    data <- list(device = device, activities = activities, sleep = sleep, exercise_log = exercise_log, heart = heart)
   }
 
   if(toXLSX){
     wb <- openxlsx::createWorkbook()
-    sapply(c("Device", "Activities", "Exercise Log", "Heart"), function(x) openxlsx::addWorksheet(wb, sheetName = x))
+    sapply(c("Device", "Activities", "Sleep", "Exercise Log", "Heart"), function(x) openxlsx::addWorksheet(wb, sheetName = x))
     openxlsx::writeData(wb, sheet = "Device", x = device)
     openxlsx::writeData(wb, sheet = "Activities", x = activities)
+    openxlsx::writeData(wb, sheet = "Sleep", x = sleep)
     openxlsx::writeData(wb, sheet = "Exercise Log", x = exercise_log)
     openxlsx::writeData(wb, sheet = "Heart", x = heart)
     openxlsx::saveWorkbook(wb, paste0(reports_pathname, "/", user, ".xlsx"), overwrite = TRUE, ...)

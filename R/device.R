@@ -36,7 +36,8 @@ get_fitbit_device <- function(token.pathname, returnData = TRUE, toSQL = FALSE){
   if(toSQL){
     database <- .checkDatabase(tkn$directory, tkn$user)
     con <- DBI::dbConnect(RSQLite::SQLite(), database)
-    DBI::dbWriteTable(con, "device", data, overwrite = TRUE)
+    DBI::dbExecute(con, sprintf("DELETE FROM %s WHERE DATE(lastSyncTime) = '%s'", "device", as.Date(data$lastSyncTime)))
+    DBI::dbWriteTable(con, "device", data, overwrite = FALSE, append = TRUE)
     DBI::dbDisconnect(con)
   }
 

@@ -1,3 +1,11 @@
+# iFitbit 0.1.8
+* Added `.adjustDates` and an overwrite argument to make continuous data collection easier and less memory intensive
+* Added a database command within `DBI::dbExecute` to remove duplicate entries when writing to SQL database
+* Updated `.readTables` to only include first 12 columns of sleep data as everyone in a study may not have sleep stages
+* Updated `get_fitbit_device` to append last synced information to SQL database to provide a sync history
+* Updated `get_fitbit_report` to include sleep data when exporting to the .xlsx format
+
+
 # iFitbit 0.1.7
 * Add `.readTables` database function.
 * Add parallel processing to the `fitbit_heart_intraday` function.

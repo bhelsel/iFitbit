@@ -24,6 +24,7 @@
 #'  rate data, Default: FALSE
 #' @param returnData Return a summary of the intensity minutes to the user's R environment, Default: TRUE
 #' @param toSQL Write a summary of the intensity minutes to a SQL database, Default: FALSE
+#' @param overwrite Data extraction should be continued from the most recent date in the SQL database, Default: FALSE
 #' @param verbose Print the progress of the Fitbit API heart rate data extraction and calculation of intensity minutes, Default: FALSE
 #' @return A measure of day-level non-wear, sleep, sedentary time, and physical activity
 #' @details This function retrieves a continuous measure of heart rate from the Fitbit API. The user has access to a variety of
@@ -51,7 +52,7 @@ get_fitbit_heart_intraday <- function(token.pathname, start.date = Sys.Date(),
                                       intensity = NULL, intensity_labels = NULL,
                                       heart_rate_method = 1, rest.hr = NULL, do.parallel = FALSE,
                                       returnData = TRUE, returnRawData = FALSE,
-                                      toSQL = FALSE, verbose = FALSE){
+                                      toSQL = FALSE, overwrite = FALSE, verbose = FALSE){
 
   if(!equals(length(intensity), length(intensity_labels))) {
     stop("Heart intensities and their labels must be the same length")
@@ -59,10 +60,9 @@ get_fitbit_heart_intraday <- function(token.pathname, start.date = Sys.Date(),
 
   tkn <- .extract_token(token.pathname)
 
-  # Device
-  device <- get_fitbit_device(token.pathname, returnData = TRUE)
-  lastSync <- as.POSIXct(device$lastSyncTime, format = "%Y-%m-%dT%H:%M:%OS")
-  if(end.date > Sys.Date()) end.date <- Sys.Date()
+  start.date <- .adjustDates(token.pathname, database = "heart", overwrite, start.date, end.date)$start.date
+
+  end.date <- .adjustDates(token.pathname, database = "heart", overwrite, start.date, end.date)$end.date
 
   # Age
   if(is.null(age)) age <- get_fitbit_profile(token.pathname)$user$age
@@ -83,7 +83,10 @@ get_fitbit_heart_intraday <- function(token.pathname, start.date = Sys.Date(),
   if(toSQL){
     database <- .checkDatabase(directory, tkn$user)
     con <- DBI::dbConnect(RSQLite::SQLite(), database)
-    DBI::dbWriteTable(con, "heart", heart_data, overwrite = TRUE)
+    if(nrow(heart_data) != 0){
+      DBI::dbExecute(con, sprintf("DELETE FROM %s WHERE date BETWEEN '%s' AND '%s'", "heart", heart_data$date[1], heart_data$date[nrow(heart_data)]))
+    }
+    DBI::dbWriteTable(con, "heart", heart_data, overwrite = overwrite, append = !overwrite)
     DBI::dbDisconnect(con)
   }
 
@@ -191,6 +194,7 @@ calculate_heart_intensities <- function(heart_raw_data = NULL, sleep_data = NULL
   if(heart_rate_method %in% 1:2 & is.null(intensity)) {
     intensities <- c(0, 0.20, 0.30, 0.40, 0.60, 0.90, 1) # Heart Rate Reserve
     heart_categories <- do.call("c", lapply(intensities, function(x) ((max.hr - rest.hr) * x) + rest.hr))
+    heart_categories[1] <- 0
   }
 
   if(heart_rate_method == 3 & is.null(intensity)) {
@@ -218,7 +222,7 @@ calculate_heart_intensities <- function(heart_raw_data = NULL, sleep_data = NULL
   }
 
   # Add Nonwear and Intensity
-  heart_raw_data$hrr.percent <- cut(heart_raw_data$hr, breaks = heart_categories, labels = intensity_labels, include.lowest = TRUE, right = FALSE)
+  heart_raw_data$hrr.percent <- cut(heart_raw_data$hr, breaks = heart_categories, labels = intensity_labels, include.lowest = TRUE, right = TRUE)
   heart_raw_data$nonwear <- ifelse(heart_raw_data$hr == 0, 1, 0)
   if(!is.null(sleep_data)) {
     heart_raw_data$sleep <- ifelse(heart_raw_data$sleep == 1 & heart_raw_data$nonwear == 0, 1, 0)

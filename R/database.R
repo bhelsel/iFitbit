@@ -113,7 +113,8 @@
     con <- DBI::dbConnect(RSQLite::SQLite(), file)
     if(tableName %in% DBI::dbListTables(con)){
       data <- DBI::dbReadTable(con, tableName)
-      main_data <- plyr::rbind.fill(main_data, data.frame(user_id, data))
+      if(tableName == "sleep") data <- data[, 1:12]
+      if(nrow(data) != 0) main_data <- plyr::rbind.fill(main_data, data.frame(user_id, data))
     }
     DBI::dbDisconnect(con)
   }

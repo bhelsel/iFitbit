@@ -100,13 +100,14 @@ library(ggplot2)
 
 ```{r deviceData, fig.height=1, fig.width=4, fig.align='center'}
 
+deviceInfo <- device[nrow(device), ]
 
-batteryColor <- dplyr::case_when(as.numeric(device$batteryLevel) >= 50 ~ "#39ff14",
-                          as.numeric(device$batteryLevel) >= 20 & as.numeric(device$batteryLevel) <= 49 ~ "#ff6700",
-                          as.numeric(device$batteryLevel) <= 19 ~ "#de1738")
+batteryColor <- dplyr::case_when(as.numeric(deviceInfo$batteryLevel) >= 50 ~ "#39ff14",
+                          as.numeric(deviceInfo$batteryLevel) >= 20 & as.numeric(deviceInfo$batteryLevel) <= 49 ~ "#ff6700",
+                          as.numeric(deviceInfo$batteryLevel) <= 19 ~ "#de1738")
 
 
-ggplot(data = device, aes(y="Battery Level")) +
+ggplot(data = deviceInfo, aes(y="Battery Level")) +
   geom_col(aes(x=as.numeric(batteryLevel)), fill = batteryColor) +
   geom_col(aes(x = 100), alpha = 0.1, color = "black", fill = "white") +
     geom_text(
@@ -124,7 +125,7 @@ ggplot(data = device, aes(y="Battery Level")) +
           panel.background = element_blank())
 
   
-lastSynced <- as.POSIXct(device$lastSyncTime, format = "%Y-%m-%dT%H:%M:%OS", tz = "America/Chicago")
+lastSynced <- as.POSIXct(deviceInfo$lastSyncTime, format = "%Y-%m-%dT%H:%M:%OS", tz = "America/Chicago")
 
 ```
 
@@ -301,8 +302,10 @@ activities %>%
 
 heart.img <-  magick::image_read(system.file("images/heart.jpeg", package = "iFitbit"))
 
+lastThree <- c((nrow(exercise_log) - 2):nrow(exercise_log))
+
 # Most recent session is equal to 1
-exercise_log_plot <- function(session=1){
+exercise_log_plot <- function(session){
   ggplot() +
   geom_rect(aes(xmin = 0, xmax = 500, ymin = 0, ymax = 500), fill = "white", color = "black", size = 2) +
   annotation_raster(heart.img, xmin = 300, xmax = 450, ymin = 150, ymax = 400) +
@@ -316,9 +319,9 @@ exercise_log_plot <- function(session=1){
 }
    
 gridExtra::grid.arrange(
-  exercise_log_plot(1),
-  exercise_log_plot(2),
-  exercise_log_plot(3),
+  exercise_log_plot(lastThree[1]),
+  exercise_log_plot(lastThree[2]),
+  exercise_log_plot(lastThree[3]),
   nrow = 1
 )
 

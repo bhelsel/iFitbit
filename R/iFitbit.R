@@ -30,7 +30,7 @@
 #' @import ggplot2
 #' @importFrom jsonlite fromJSON
 #' @importFrom httr content GET POST add_headers content_type oauth_endpoint oauth_app oauth2.0_token
-#' @importFrom DBI dbConnect dbWriteTable dbReadTable dbExistsTable dbRemoveTable dbDisconnect
+#' @importFrom DBI dbConnect dbWriteTable dbReadTable dbExistsTable dbExecute dbRemoveTable dbDisconnect
 #' @importFrom RSQLite SQLite
 #' @importFrom RCurl base64Encode
 #' @importFrom utils modifyList tail menu

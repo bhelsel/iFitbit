@@ -98,7 +98,10 @@ get_fitbit_exercise_log <- function(token.pathname, after.date = Sys.Date(),
 
 
   data <- data.frame(cbind(date, time, type, duration, steps, calories, hr, distance, distanceUnit, logType, activityLevel, heartZones))
-  data <- data[data$duration >= 1 & !is.na(data$duration), ]
+
+  # data <- data[data$duration >= 1 & !is.na(data$duration), ] # Removed this filter for now as I am not sure the best option
+
+  data <- dplyr::arrange(data, date, time)
 
   if(toSQL){
     database <- .checkDatabase(tkn$directory, tkn$user)

@@ -19,6 +19,7 @@ get_fitbit_heart_intraday(
   returnData = TRUE,
   returnRawData = FALSE,
   toSQL = FALSE,
+  overwrite = FALSE,
   verbose = FALSE
 )
 }
@@ -56,6 +57,8 @@ is a measure collected by the study, Default: NULL}
 rate data, Default: FALSE}
 
 \item{toSQL}{Write a summary of the intensity minutes to a SQL database, Default: FALSE}
+
+\item{overwrite}{Data extraction should be continued from the most recent date in the SQL database, Default: FALSE}
 
 \item{verbose}{Print the progress of the Fitbit API heart rate data extraction and calculation of intensity minutes, Default: FALSE}
 }
