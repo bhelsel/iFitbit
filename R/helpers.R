@@ -108,13 +108,34 @@
   tkn <- .extract_token(token.pathname)
   device <- get_fitbit_device(token.pathname, returnData = TRUE)
   lastSync <- as.POSIXct(device$lastSyncTime, format = "%Y-%m-%dT%H:%M:%OS")
-  if(end.date > lastSync) end.date <- as.Date(lastSync) - 1
+
+  if(length(lastSync) == 0){
+    con <- DBI::dbConnect(RSQLite::SQLite(), .checkDatabase(directory, tkn$user))
+    if("device" %in% DBI::dbListTables(con)){
+      lastSync <- as.POSIXct(utils::tail(DBI::dbReadTable(con, "device"), 1)$lastSyncTime, format = "%Y-%m-%dT%H:%M:%OS")
+    }
+    DBI::dbDisconnect(con)
+  }
+
+  if(length(lastSync) != 0){
+    if(end.date > lastSync | as.Date(lastSync) == Sys.Date()) {
+      end.date <- as.Date(lastSync) - 1
+    }
+  } else if (end.date >= Sys.Date()){
+    end.date <- Sys.Date()
+  }
+
   if(!overwrite){
     con <- DBI::dbConnect(RSQLite::SQLite(), .checkDatabase(directory, tkn$user))
-    lastDate <- tail(DBI::dbReadTable(con, database)$date, 1)
-    DBI::dbDisconnect(con)
-    if(length(lastDate) != 0) start.date <- as.Date(lastDate) - 1
+    if(DBI::dbExistsTable(con, database)){
+      lastDate <- tail(DBI::dbReadTable(con, database)$date, 1)
+      DBI::dbDisconnect(con)
+      if(length(lastDate) != 0) start.date <- as.Date(lastDate) - 1
+    }
   }
+
+
+
   return(list(start.date = start.date, end.date = end.date))
 }
 
