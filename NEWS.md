@@ -1,3 +1,8 @@
+# iFitbit 0.1.9
+* Improve duplicate detection within the SQL Lite databases
+* Reduced repetitive code within `get_fitbit_exercise_log` function
+* Edit the `.adjustDates` function to handle instances where a device table is missing from the SQL Lite database or the Fitbit API
+
 # iFitbit 0.1.8
 * Added `.adjustDates` and an overwrite argument to make continuous data collection easier and less memory intensive
 * Added a database command within `DBI::dbExecute` to remove duplicate entries when writing to SQL database
