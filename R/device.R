@@ -25,7 +25,7 @@ get_fitbit_device <- function(token.pathname, returnData = TRUE, toSQL = FALSE){
   colnames(devicesData) <- c("user", "deviceVersion", "lastSyncTime", "battery", "batteryLevel")
   url_devices <- paste0("https://api.fitbit.com/1/", "user/", tkn$user, "/", "devices.json")
   device <- jsonlite::fromJSON(httr::content(httr::GET(url_devices, tkn$token), as = "text"))
-  device <- device[device$deviceVersion != "MobileTrack", ]
+  if(length(device) != 0) device <- device[device$deviceVersion != "MobileTrack", ]
 
   if(length(device) != 0){
     data <- data.frame(cbind(deviceVersion=device$deviceVersion, lastSyncTime=device$lastSyncTime, battery=device$battery, batteryLevel=device$batteryLevel, type=device$type))
@@ -36,8 +36,13 @@ get_fitbit_device <- function(token.pathname, returnData = TRUE, toSQL = FALSE){
   if(toSQL){
     database <- .checkDatabase(tkn$directory, tkn$user)
     con <- DBI::dbConnect(RSQLite::SQLite(), database)
-    DBI::dbExecute(con, sprintf("DELETE FROM %s WHERE DATE(lastSyncTime) = '%s'", "device", as.Date(data$lastSyncTime)))
-    DBI::dbWriteTable(con, "device", data, overwrite = FALSE, append = TRUE)
+    if(DBI::dbExistsTable(con, "device")) {
+      DBI::dbExecute(con, "DELETE FROM 'device' WHERE lastSyncTime IS NULL")
+      DBI::dbExecute(con, sprintf("DELETE FROM %s WHERE DATE(lastSyncTime) = '%s'", "device", as.Date(data$lastSyncTime)))
+    }
+    if(!is.na(data$lastSyncTime)){
+      DBI::dbWriteTable(con, "device", data, overwrite = FALSE, append = TRUE)
+    }
     DBI::dbDisconnect(con)
   }
 

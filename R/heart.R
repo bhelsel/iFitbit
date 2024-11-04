@@ -84,7 +84,9 @@ get_fitbit_heart_intraday <- function(token.pathname, start.date = Sys.Date(),
     database <- .checkDatabase(directory, tkn$user)
     con <- DBI::dbConnect(RSQLite::SQLite(), database)
     if(nrow(heart_data) != 0){
-      DBI::dbExecute(con, sprintf("DELETE FROM %s WHERE date BETWEEN '%s' AND '%s'", "heart", heart_data$date[1], heart_data$date[nrow(heart_data)]))
+      if(DBI::dbExistsTable(con, "heart")) {
+        DBI::dbExecute(con, sprintf("DELETE FROM %s WHERE date BETWEEN '%s' AND '%s'", "heart", heart_data$date[1], heart_data$date[nrow(heart_data)]))
+      }
     }
     DBI::dbWriteTable(con, "heart", heart_data, overwrite = overwrite, append = !overwrite)
     DBI::dbDisconnect(con)

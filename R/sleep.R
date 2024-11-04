@@ -65,7 +65,9 @@ get_fitbit_sleep <- function(token.pathname, start.date = Sys.Date(),
     database <- .checkDatabase(tkn$directory, tkn$user)
     con <- DBI::dbConnect(RSQLite::SQLite(), database)
     if(nrow(data) != 0){
-      DBI::dbExecute(con, sprintf("DELETE FROM %s WHERE dateOfSleep BETWEEN '%s' AND '%s'", "sleep", data$dateOfSleep[1], data$dateOfSleep[nrow(data)]))
+      if(DBI::dbExistsTable(con, "sleep")){
+        DBI::dbExecute(con, sprintf("DELETE FROM %s WHERE dateOfSleep BETWEEN '%s' AND '%s'", "sleep", data$dateOfSleep[1], data$dateOfSleep[nrow(data)]))
+      }
     }
     DBI::dbWriteTable(con, "sleep", data, overwrite = overwrite, append = !overwrite)
     DBI::dbDisconnect(con)

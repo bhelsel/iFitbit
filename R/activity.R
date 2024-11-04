@@ -38,8 +38,8 @@ get_fitbit_activities <- function(token.pathname, resource = "All Resources",
 
   if(dateDiff > 100){
     mid.date <- as.Date(start.date) + floor(dateDiff / 2)
-    start.date <- c(start.date, as.character(mid.date))
-    end.date <- c(as.character(mid.date + 1), end.date)
+    start.date <- c(start.date, mid.date)
+    end.date <- c(mid.date + 1, end.date)
   }
 
   if("All Resources" %in% resource){
@@ -131,7 +131,9 @@ get_fitbit_activities <- function(token.pathname, resource = "All Resources",
     database <- .checkDatabase(tkn$directory, tkn$user)
     con <- DBI::dbConnect(RSQLite::SQLite(), database)
     if(nrow(data) != 0){
-      DBI::dbExecute(con, sprintf("DELETE FROM %s WHERE date BETWEEN '%s' AND '%s'", "activities", data$date[1], data$date[nrow(data)]))
+      if(DBI::dbExistsTable(con, "activities")) {
+        DBI::dbExecute(con, sprintf("DELETE FROM %s WHERE date BETWEEN '%s' AND '%s'", "activities", data$date[1], data$date[nrow(data)]))
+      }
     }
     DBI::dbWriteTable(con, "activities", data, overwrite = overwrite, append = !overwrite)
     DBI::dbDisconnect(con)
